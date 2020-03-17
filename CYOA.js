@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * The variable to the CYOA
  * Run CYOA().Start() in console after hosting a room.
@@ -38,12 +39,12 @@ var CYOA = function CYOA() {
 		CurrentRoom = found;
 
 		if (printRoomDesc)
-			CE(CurrentRoom.Entry);
+			CE(CurrentRoom.Describe());
 
 		console.log("[INFO] GotoRoom: " + CurrentRoom.Name);
 	}
 
-	C = Player;
+	var C = Player;
 
 	class Trigger {
 		Text = "TRIGGER TEXT";
@@ -62,6 +63,10 @@ var CYOA = function CYOA() {
 		Name = "ROOM NAME";
 		Entry = "Will display when player enters the room";
 		Triggers = [];
+
+		Describe = () => this.Entry;
+
+		GetTriggers = () => this.Triggers;
 
 		constructor(Name) {
 			this.Name = Name;
@@ -87,28 +92,14 @@ var CYOA = function CYOA() {
 		{
 			var t = new Trigger("window", r);
 			t.Action = function () {
-				if ((data.Type == "Action") && (msg.startsWith("serverenter"))) {
-					var UpdatedRoom = {
-						Name: ChatRoomData.Name,
-						Description: ChatRoomData.Description,
-						Background: ChatRoomData.Background,
-						Limit: ChatRoomData.Limit,
-						Admin: ChatRoomData.Admin,
-						Ban: ChatRoomData.Ban,
-						Private: ChatRoomData.Private,
-						Locked: false
-					};
-					ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-					ChatAdminMessage = "UpdatingRoom";
-					CE("You find a window, and it slides open at first try. Apparently someone was a bit careless with the security");
-				}
+				CE("You find a window, and it slides open at first try. Apparently someone was a bit careless with the security");
 			};
 
 			r.Triggers.push(t);
 		}
 
 		r.Entry = "The dim lights of closed and covered windows lights the room as you return your attention to the main hall. " +
-			"You can still " + checkLocker.Print() + " or " + goDown.Print();
+			"You can " + checkLocker.Print() + " or " + goDown.Print();
 
 		Room.push(r);
 	}
@@ -122,31 +113,65 @@ var CYOA = function CYOA() {
 			tryCuffs.Action = function () {
 				InventoryWear(C, "LeatherCuffs", "ItemArms", "Default", 20);
 				ChatRoomCharacterUpdate(C);
-				CE("the cuffs slide on nicely. there doesn't seem to be anything unusual about them");
+				CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them");
+
+				Flags.IsTookCuffs = true;
 			};
-			r.Triggers.push(tryCuffs);
 		}
 		var tryGag = new Trigger("try gag", r);
 		{
 			tryGag.Action = function () {
-				if (Flags.Gagged) {
-					CE("The gag stays firmly in place");
-				} else {
-					InventoryWear(C, "BallGag", "ItemMouth");
-					InventoryLock(C, InventoryGet(C, "ItemMouth", "Default", 20), "MistressPadlock", 2313);
-					ChatRoomCharacterUpdate(C)
-					CE("The gag fits snugly between your lips, keeping your mouth open. A light mechanical sound and a 'click' can be heard as the straps pull tightly together and a mechanism on the buckle locks it in place");
+				InventoryWear(C, "BallGag", "ItemMouth");
+				InventoryLock(C, InventoryGet(C, "ItemMouth"), "MistressPadlock", 2313);
+				ChatRoomCharacterUpdate(C)
+				CE("The gag fits snugly between your lips, keeping your mouth open. A light mechanical sound and a 'click' can be heard as the straps pull tightly together and a mechanism on the buckle locks it in place");
 
-					Flags.Gagged = true;
-				}
+				Flags.IsTookGag = true;
 			};
-			r.Triggers.push(tryGag);
 		}
+
 		var goBack = new Trigger("go back", r);
 		goBack.Action = () => GotoRoom("Entrance");
-		r.Triggers.push(goBack);
 
-		r.Entry = "The locker is mostly empty but it contains a set of leather cuffs" + tryCuffs.Print() + " and a ball gag" + tryGag.Print() + ". You could of course also go back" + goBack.Print();
+		r.GetTriggers = () => { 
+			var tt = [];
+
+			if (!Flags.IsTookCuffs) {
+				tt.push(tryCuffs);
+			 }
+
+			if (!Flags.IsTookGag) {
+				tt.push(tryGag);
+			}
+
+			tt.push(goBack);
+
+			return tt;
+		};
+
+		r.Describe = () => {
+			var d = "The locker is mostly empty but it contains";
+
+			var isContainsAny = false;
+
+			if (!Flags.IsTookCuffs) {
+				d += " a set of leather cuffs" + tryCuffs.Print();
+				isContainsAny = true;
+			}
+
+			if (!Flags.IsTookGag) {
+				if (isContainsAny)
+					d += " and";
+				d += " a ball gag" + tryGag.Print()
+				isContainsAny = true;
+			}
+
+			if (isContainsAny == false) {
+				d = "The locker is empty";
+			}
+
+			return d + ". You could of course also go back" + goBack.Print();
+		};
 
 		Room.push(r);
 	}
@@ -246,7 +271,7 @@ var CYOA = function CYOA() {
 		{
 			hookCuff.Action = function () {
 				if (InventoryGet(C, "ItemArms").Property) {
-					NewPose = "Both"
+					var NewPose = "Both"
 					DialogFocusItem = InventoryGet(C, "ItemArms");
 					DialogFocusItem.Property.Restrain = NewPose;
 					DialogFocusItem.Property.SetPose = [(NewPose == "Wrist") ? "BackBoxTie" : "BackElbowTouch"];
@@ -385,8 +410,9 @@ var CYOA = function CYOA() {
 		//Current player types in chat
 		if (sender == C && data.Type == "Chat") {
 			//Iterate room triggers for a match
-			for (var i = 0; i < CurrentRoom.Triggers.length; i++) {
-				var trigger = CurrentRoom.Triggers[i];
+			var triggers = CurrentRoom.GetTriggers();
+			for (var i = 0; i < triggers.length; i++) {
+				var trigger = triggers[i];
 				var patt = new RegExp(trigger.Text);
 				if (patt.test(msg)) {
 					console.log("[INFO] Trigger hit: " + trigger.Name);
@@ -398,7 +424,7 @@ var CYOA = function CYOA() {
 			//Print room entry
 			var regex = /(look|help)/mg;
 			if (regex.test(msg))
-				CE(CurrentRoom.Entry);
+				GotoRoom(CurrentRoom.Name);
 		}
 	}
 
