@@ -1,4 +1,5 @@
 // @ts-check
+
 /**
  * The variable to the CYOA
  * Run CYOA().Start() in console after hosting a room.
@@ -25,10 +26,18 @@ var CYOA = function CYOA() {
 		ServerSend("ChatRoomChat", { Content: "*" + t, Type: "Emote", Dictionary: Dictionary });
 	}
 
+	/** Finds a level by name
+	 * @param {string} roomName 
+	 * @returns {Level}
+	 */
 	function GetRoom(roomName) {
 		return Room.find(x => x.Name == roomName);
 	}
 
+	/** Finds and moves the player to the Level
+	 * @param {string} roomName
+	 * @param {boolean} printRoomDesc
+	 */
 	function GotoRoom(roomName, printRoomDesc = true) {
 		var found = GetRoom(roomName);
 		if (found == null) {
@@ -37,6 +46,8 @@ var CYOA = function CYOA() {
 		}
 
 		CurrentRoom = found;
+
+		CurrentRoom.Prepare(CurrentRoom);
 
 		if (printRoomDesc)
 			CE(CurrentRoom.Describe());
@@ -47,50 +58,71 @@ var CYOA = function CYOA() {
 	var C = Player;
 
 	class Trigger {
+		/**@type {string} */
 		Text = "TRIGGER TEXT";
+
+		/**@type {function} */
 		Action = () => { };
 
-		constructor(Text, Room) {
+		/**
+		 * @param {string} Text
+		 */
+		constructor(Text) {
 			this.Text = Text;
-			this.Room = Room;
 		}
 
-		/**Use to print in messages; Should not be overriden */
+		/**Use to print in messages; Should not be overriden 
+		 * @returns {string} */
 		Print = () => "(" + this.Text + ")";
 	}
 
 	class Level {
+		/**@type {string} */
 		Name = "ROOM NAME";
+		/**@type {string} */
 		Entry = "Will display when player enters the room";
+		/**@type {Trigger[]} */
 		Triggers = [];
 
+		/**@param {Level} level */
+		Prepare = level => { };
+
+		/**@returns {string} */
 		Describe = () => this.Entry;
 
+		/**@returns {Trigger[]} */
 		GetTriggers = () => this.Triggers;
 
+		/**
+		 * @param {string} Name
+		 */
 		constructor(Name) {
 			this.Name = Name;
 		}
 	}
 
+	/**All story persistent flags
+	 * @type {object} */
 	var Flags = {};
 
+	/**All story levels
+	 * @type {Level[]} */
 	var Room = [];
 
 	{
-		var r = new Level("Entrance");
+		let r = new Level("Entrance");
 
 		//Triggers
-		var goDown = new Trigger("go down", r);
+		let goDown = new Trigger("go down");
 		goDown.Action = () => GotoRoom("Basement");
 		r.Triggers.push(goDown);
 
-		var checkLocker = new Trigger("check locker", r);
+		let checkLocker = new Trigger("check locker");
 		checkLocker.Action = () => GotoRoom("Locker");
 		r.Triggers.push(checkLocker);
 
 		{
-			var t = new Trigger("window", r);
+			let t = new Trigger("window");
 			t.Action = function () {
 				CE("You find a window, and it slides open at first try. Apparently someone was a bit careless with the security");
 			};
@@ -105,58 +137,42 @@ var CYOA = function CYOA() {
 	}
 
 	{
-		var r = new Level("Locker");
+		let r = new Level("Locker");
 
 		//Triggers
-		var tryCuffs = new Trigger("try cuffs", r);
-		{
-			tryCuffs.Action = function () {
-				InventoryWear(C, "LeatherCuffs", "ItemArms", "Default", 20);
-				ChatRoomCharacterUpdate(C);
-				CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them");
+		let tryCuffs = new Trigger("try cuffs");
+		tryCuffs.Action = function () {
+			InventoryWear(C, "LeatherCuffs", "ItemArms", "Default", 20);
+			ChatRoomCharacterUpdate(C);
+			CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them");
 
-				Flags.IsTookCuffs = true;
-			};
-		}
-		var tryGag = new Trigger("try gag", r);
-		{
-			tryGag.Action = function () {
-				InventoryWear(C, "BallGag", "ItemMouth");
-				InventoryLock(C, InventoryGet(C, "ItemMouth"), "MistressPadlock", 2313);
-				ChatRoomCharacterUpdate(C)
-				CE("The gag fits snugly between your lips, keeping your mouth open. A light mechanical sound and a 'click' can be heard as the straps pull tightly together and a mechanism on the buckle locks it in place");
-
-				Flags.IsTookGag = true;
-			};
-		}
-
-		var goBack = new Trigger("go back", r);
-		goBack.Action = () => GotoRoom("Entrance");
-
-		r.GetTriggers = () => { 
-			var tt = [];
-
-			if (!Flags.IsTookCuffs) {
-				tt.push(tryCuffs);
-			 }
-
-			if (!Flags.IsTookGag) {
-				tt.push(tryGag);
-			}
-
-			tt.push(goBack);
-
-			return tt;
+			Flags.IsTookCuffs = true;
 		};
 
-		r.Describe = () => {
+		let tryGag = new Trigger("try gag");
+		tryGag.Action = function () {
+			InventoryWear(C, "BallGag", "ItemMouth");
+			InventoryLock(C, InventoryGet(C, "ItemMouth"), "MistressPadlock", 2313);
+			ChatRoomCharacterUpdate(C)
+			CE("The gag fits snugly between your lips, keeping your mouth open. A light mechanical sound and a 'click' can be heard as the straps pull tightly together and a mechanism on the buckle locks it in place");
+
+			Flags.IsTookGag = true;
+		};
+
+		let goBack = new Trigger("go back");
+		goBack.Action = () => GotoRoom("Entrance");
+
+		r.Prepare = level => { 
 			var d = "The locker is mostly empty but it contains";
+
+			level.Triggers = [];
 
 			var isContainsAny = false;
 
 			if (!Flags.IsTookCuffs) {
 				d += " a set of leather cuffs" + tryCuffs.Print();
 				isContainsAny = true;
+				level.Triggers.push(tryCuffs);
 			}
 
 			if (!Flags.IsTookGag) {
@@ -164,28 +180,31 @@ var CYOA = function CYOA() {
 					d += " and";
 				d += " a ball gag" + tryGag.Print()
 				isContainsAny = true;
+				level.Triggers.push(tryGag);
 			}
 
 			if (isContainsAny == false) {
 				d = "The locker is empty";
 			}
 
-			return d + ". You could of course also go back" + goBack.Print();
+			level.Triggers.push(goBack);
+
+			level.Entry = d + ". You could of course also go back" + goBack.Print();
 		};
 
 		Room.push(r);
 	}
 
 	{
-		var r = new Level("Basement");
+		let r = new Level("Basement");
 
 		//Triggers
-		var acceptFate = new Trigger("open door", r);
+		let acceptFate = new Trigger("open door");
 		{
 			acceptFate.Action = () => CE("The door is simply too solid, and any attempt at prying it open seems meaningless");
 			r.Triggers.push(acceptFate);
 		}
-		var lens = new Trigger("lens", r);
+		let lens = new Trigger("lens");
 		{
 			lens.Action = function () {
 				if (InventoryGet(C, "ItemArms")) {
@@ -193,7 +212,7 @@ var CYOA = function CYOA() {
 						if (CharacterIsNaked(C) && InventoryGet(C, "ItemArms").Property.Restrain == "Both" && InventoryGet(C, "ItemMouth").Asset.Name == "BallGag") {
 
 							var r = GetRoom("Basement");
-							var goThroughDoor = new Trigger("go through door", r);
+							var goThroughDoor = new Trigger("go through door");
 							goThroughDoor.Action = function () {
 
 								GotoRoom("Room2");
@@ -235,7 +254,7 @@ var CYOA = function CYOA() {
 			r.Triggers.push(lens);
 		}
 
-		var goBack = new Trigger("go back", r);
+		let goBack = new Trigger("go back");
 		goBack.Action = () => GotoRoom("Entrance");
 		r.Triggers.push(goBack);
 
@@ -246,10 +265,10 @@ var CYOA = function CYOA() {
 	}
 
 	{
-		var r = new Level("Hook");
+		let r = new Level("Hook");
 
 		//Triggers
-		var hookCloth = new Trigger("hook cloth", r);
+		let hookCloth = new Trigger("hook cloth");
 		{
 			hookCloth.Action = function () {
 				CE("The hook seems like it almost was made for this, and it even moves a bit to swiftly tear up your clothes, then retracts back into the wall.");
@@ -259,7 +278,7 @@ var CYOA = function CYOA() {
 			};
 			r.Triggers.push(hookCloth);
 		}
-		var struggle = new Trigger("hook gag", r);
+		let struggle = new Trigger("hook gag");
 		{
 			struggle.Action = function () {
 				CE("The hook retracts back into the wall at any attempt at moving the gag close to it. Maybe standing in front of the lens again will extend it once more?");
@@ -267,7 +286,7 @@ var CYOA = function CYOA() {
 			};
 			r.Triggers.push(struggle);
 		}
-		var hookCuff = new Trigger("hook cuff", r);
+		let hookCuff = new Trigger("hook cuff");
 		{
 			hookCuff.Action = function () {
 				if (InventoryGet(C, "ItemArms").Property) {
@@ -294,15 +313,15 @@ var CYOA = function CYOA() {
 	}
 
 	{
-		var r = new Level("Room2");
+		let r = new Level("Room2");
 
 		//Triggers
-		var acceptFate = new Trigger("check door", r);
+		let acceptFate = new Trigger("check door");
 		{
 			acceptFate.Action = () => CE("The door seems to have locked behind you leaving no way back at the current moment.");
 			r.Triggers.push(acceptFate);
 		}
-		var struggle = new Trigger("stand on platform", r);
+		let struggle = new Trigger("stand on platform");
 		{
 			struggle.Action = function () {
 				InventoryWear(C, "SpreaderMetal", "ItemFeet", "Default", 20);
@@ -318,10 +337,10 @@ var CYOA = function CYOA() {
 	}
 
 	{
-		var r = new Level("Stuck");
+		let r = new Level("Stuck");
 
 		//Triggers
-		var sameAction = () => {
+		let sameAction = () => {
 			InventoryWear(C, "OneBarPrison", "ItemDevices", "Default", 20)
 			InventoryWear(C, "VibratingDildo", "ItemVulva")
 			InventoryWear(C, "Corset4", "ItemTorso", InventoryGet(C, "HairFront").Color, 20)
@@ -338,11 +357,11 @@ var CYOA = function CYOA() {
 			Reset();
 		};
 
-		var acceptFate = new Trigger("accept fate", r);
+		let acceptFate = new Trigger("accept fate");
 		acceptFate.Action = sameAction;
 		r.Triggers.push(acceptFate);
 
-		var struggle = new Trigger("struggle", r);
+		var struggle = new Trigger("struggle");
 		struggle.Action = sameAction;
 		r.Triggers.push(struggle);
 
@@ -352,6 +371,7 @@ var CYOA = function CYOA() {
 		Room.push(r);
 	}
 
+	/**@type {Level} */
 	var CurrentRoom = Room[0];
 
 	function FollowUp(a) {
@@ -415,7 +435,7 @@ var CYOA = function CYOA() {
 				var trigger = triggers[i];
 				var patt = new RegExp(trigger.Text);
 				if (patt.test(msg)) {
-					console.log("[INFO] Trigger hit: " + trigger.Name);
+					console.log("[INFO] Trigger hit: " + trigger.Text);
 					trigger.Action();
 					return;
 				}
@@ -430,6 +450,7 @@ var CYOA = function CYOA() {
 
 	return {
 		Start: () => {
+			CA("=== CYOA Starting ===");
 			console.log("CYOA Starting...");
 			ServerSocket.on("ChatRoomMessage", Process);
 			Reset();
