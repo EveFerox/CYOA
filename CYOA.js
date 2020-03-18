@@ -399,14 +399,8 @@ var CYOA = function CYOA() {
 			InventoryWear(C, "Corset4", "ItemTorso",  C.LabelColor, 20)
 			ChatRoomCharacterUpdate(C)
 			CE("The phallus penetrates your pussy lips pushing deep with the metal pole locking in place. Another set of arms lifts up to tightly squeeze your waist together in a corset before the platform you're standing on starts elevating towards an opening hatch in the ceiling, to put you on display for whoever might enter next. Maybe if they're nice they'll even help you")
-			if (!InventoryGet(C, "ItemVulva").Property) InventoryGet(C, "ItemVulva").Property = { Intensity: -1 }
-			if (InventoryGet(C, "ItemVulva").Property.Intensity < 2) {
-				InventoryGet(C, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
-				InventoryGet(C, "ItemVulva").Property.Intensity = InventoryGet(C, "ItemVulva").Property.Intensity + 2
-				ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(C, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{ Tag: "DestinationCharacterName", Text: C.Name, MemberNumber: C.MemberNumber }] })
-				CharacterLoadEffect(C)
-				ChatRoomCharacterUpdate(C)
-			}
+
+			setTimeout(setVibe, 500);
 
 			Reset();
 		};
@@ -464,6 +458,17 @@ var CYOA = function CYOA() {
 		if (resetcheck != 1)
 			Reset()
 		resetcheck = 0
+	}
+
+	function setVibe() {
+		if (!InventoryGet(C, "ItemVulva").Property) InventoryGet(C, "ItemVulva").Property = { Intensity: -1 }
+		if (InventoryGet(C, "ItemVulva").Property.Intensity < 2) {
+				InventoryGet(C, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
+				InventoryGet(C, "ItemVulva").Property.Intensity = InventoryGet(C, "ItemVulva").Property.Intensity + 2
+				ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(C, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{ Tag: "DestinationCharacterName", Text: C.Name, MemberNumber: C.MemberNumber }] })
+				CharacterLoadEffect(C)
+				ChatRoomCharacterUpdate(C)
+			}
 	}
 
 	function Process(data) {
