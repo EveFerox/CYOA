@@ -454,6 +454,23 @@ var CYOA = function CYOA() {
 			console.log("CYOA Starting...");
 			ServerSocket.on("ChatRoomMessage", Process);
 			Reset();
+			GotoRoom(CurrentRoom.Name);
 		}
 	};
+}
+
+// Shortcut to start the story
+// Hit the key S to start the story while in a chat room
+{
+	let isStarted = false;
+
+	window.addEventListener("keydown", (e) => {
+		if (isStarted) return;
+		if (CurrentScreen != "ChatRoom") return;
+
+		if (String.fromCharCode(e.keyCode) == "S") {
+			CYOA().Start();
+			isStarted = true;
+		}
+	});
 }
