@@ -145,7 +145,7 @@ var CYOA = function CYOA() {
 			InventoryWear(C, "LeatherCuffs", "ItemArms", "Default", 20);
 			InventoryLock(C, InventoryGet(C, "ItemArms"), "MistressPadlock", 2313);
 			ChatRoomCharacterUpdate(C);
-			CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them, but after a few seconds a mechanical click can be heard as they tighten a bit and a mechanical click of a locking mechanism on each buckle secures them in place");
+			CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them at first, but after a few seconds a mechanical click can be heard as they tighten a bit and a mechanical click of a locking mechanism on each buckle secures them in place");
 
 			Flags.IsTookCuffs = true;
 		};
@@ -207,6 +207,7 @@ var CYOA = function CYOA() {
 		let lens = new Trigger("lens");
 		{
 			lens.Action = function () {
+				if (InventoryGet(C, "ItemArms")){
 				if (InventoryGet(C, "ItemArms").Asset.Name == "LeatherCuffs") {
 					if (InventoryGet(C, "ItemArms").Property) {
 						if (CharacterIsNaked(C) && InventoryGet(C, "ItemArms").Property.Restrain == "Both" && InventoryGet(C, "ItemMouth").Asset.Name == "BallGag") {
@@ -229,6 +230,10 @@ var CYOA = function CYOA() {
 						InventoryGet(C, "ItemArms").Property = { Restrain: null };
 						GotoRoom("Hook");
 					}
+				}
+				else {
+					CE("The sensor moves a bit, but nothing seems to happen")
+				}
 				}
 				else {
 					CE("The sensor moves a bit, but nothing seems to happen")
@@ -363,14 +368,15 @@ var CYOA = function CYOA() {
 		let sameAction = () => {
 			InventoryWear(C, "OneBarPrison", "ItemDevices", "Default", 20)
 			InventoryWear(C, "VibratingDildo", "ItemVulva")
-			InventoryWear(C, "Corset4", "ItemTorso", InventoryGet(C, "HairFront").Color, 20)
+			InventoryWear(C, "Corset4", "ItemTorso",  C.LabelColor, 20)
 			ChatRoomCharacterUpdate(C)
-			CE("The phallus penetrates your pussy lips pushing deep with the metal pole locking in place. Another set of arms lifts up to tightly squeeze your waist together in a corset before the platform you're standing on starts elevating towards an opening hatch in the ceiling, to put you on display for whoever might enter next")
+			CE("The phallus penetrates your pussy lips pushing deep with the metal pole locking in place. Another set of arms lifts up to tightly squeeze your waist together in a corset before the platform you're standing on starts elevating towards an opening hatch in the ceiling, to put you on display for whoever might enter next. Maybe if they're nice they'll even help you")
 			if (!InventoryGet(C, "ItemVulva").Property) InventoryGet(C, "ItemVulva").Property = { Intensity: -1 }
 			if (InventoryGet(C, "ItemVulva").Property.Intensity < 2) {
 				InventoryGet(C, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
 				InventoryGet(C, "ItemVulva").Property.Intensity = InventoryGet(C, "ItemVulva").Property.Intensity + 2
 				ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(C, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{ Tag: "DestinationCharacterName", Text: C.Name, MemberNumber: C.MemberNumber }] })
+				CharacterLoadEffect(C)
 				ChatRoomCharacterUpdate(C)
 			}
 
@@ -418,6 +424,18 @@ var CYOA = function CYOA() {
 		ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
 		ChatAdminMessage = "UpdatingRoom";
 		Flags = {};
+		console.log("CYOA Resetting")
+	}
+
+	function CharacterStillInRoom() {
+		var resetcheck = 0
+		for (var i=0;i<ChatRoomCharacter.length;i++){
+			if (C.MemberNumber == ChatRoomCharacter[i].MemberNumber)
+			resetcheck = 1 
+		}
+		if (resetcheck != 1)
+			Reset()
+		resetcheck = 0
 	}
 
 	function Process(data) {
@@ -448,6 +466,32 @@ var CYOA = function CYOA() {
 			return;
 		}
 
+		// Vibes for everyone else change intensity whenever someone uses the lens
+		var lenstrigger = new RegExp("lens")
+		if (lenstrigger.test(msg) && sender == C){
+			for(var i=0; i<ChatRoomCharacter.length; i++){
+				var X = ChatRoomCharacter[i]
+				if (InventoryGet(X, "ItemVulva")){
+				if (InventoryGet(X, "ItemVulva").Asset.Name == "VibratingDildo"){
+					if(!InventoryGet(X, "ItemVulva").Property) InventoryGet(X, "ItemVulva").Property = { Intensity: -1 }
+					if(InventoryGet(X, "ItemVulva").Property.Intensity < 3){
+					InventoryGet(X, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
+					InventoryGet(X, "ItemVulva").Property.Intensity = InventoryGet(X, "ItemVulva").Property.Intensity + 1
+					ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(X, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{Tag: "DestinationCharacterName", Text: X.Name, MemberNumber: X.MemberNumber}]} )
+					CharacterLoadEffect(X)
+					ChatRoomCharacterUpdate(X)
+				} else {
+					InventoryGet(X, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
+					InventoryGet(X, "ItemVulva").Property.Intensity = InventoryGet(X, "ItemVulva").Property.Intensity - 1
+					ServerSend("ChatRoomChat", { Content: "Dildo" + ((-1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(X, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{Tag: "DestinationCharacterName", Text: X.Name, MemberNumber: X.MemberNumber}]} )
+					CharacterLoadEffect(X)
+					ChatRoomCharacterUpdate(X)
+				}
+			}
+		}
+		}
+		}
+
 		//Current player types in chat
 		if (sender == C && data.Type == "Chat") {
 			//Iterate room triggers for a match
@@ -467,6 +511,10 @@ var CYOA = function CYOA() {
 			if (regex.test(msg))
 				GotoRoom(CurrentRoom.Name);
 		}
+
+
+	// Reset room if current player disconnects
+	if ((data.Type == "Action") && (msg.startsWith("serverdisconnect"))) setTimeout(CharacterStillInRoom, 3000);
 	}
 
 	return {
