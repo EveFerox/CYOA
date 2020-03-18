@@ -143,8 +143,9 @@ var CYOA = function CYOA() {
 		let tryCuffs = new Trigger("try cuffs");
 		tryCuffs.Action = function () {
 			InventoryWear(C, "LeatherCuffs", "ItemArms", "Default", 20);
+			InventoryLock(C, InventoryGet(C, "ItemArms"), "MistressPadlock", 2313);
 			ChatRoomCharacterUpdate(C);
-			CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them");
+			CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them, but after a few seconds a mechanical click can be heard as they tighten a bit and a mechanical click of a locking mechanism on each buckle secures them in place");
 
 			Flags.IsTookCuffs = true;
 		};
@@ -202,36 +203,17 @@ var CYOA = function CYOA() {
 		let acceptFate = new Trigger("open door");
 		{
 			acceptFate.Action = () => CE("The door is simply too solid, and any attempt at prying it open seems meaningless");
-			r.Triggers.push(acceptFate);
 		}
 		let lens = new Trigger("lens");
 		{
 			lens.Action = function () {
-				if (InventoryGet(C, "ItemArms")) {
+				if (InventoryGet(C, "ItemArms").Asset.Name == "LeatherCuffs") {
 					if (InventoryGet(C, "ItemArms").Property) {
 						if (CharacterIsNaked(C) && InventoryGet(C, "ItemArms").Property.Restrain == "Both" && InventoryGet(C, "ItemMouth").Asset.Name == "BallGag") {
 
 							var r = GetRoom("Basement");
-							var goThroughDoor = new Trigger("go through door");
-							goThroughDoor.Action = function () {
 
-								GotoRoom("Room2");
-
-								var UpdatedRoom = {
-									Name: ChatRoomData.Name,
-									Description: ChatRoomData.Description,
-									Background: "VaultCorridor",
-									Limit: ChatRoomData.Limit,
-									Admin: ChatRoomData.Admin,
-									Ban: ChatRoomData.Ban,
-									Private: ChatRoomData.Private,
-									Locked: true
-								}
-								ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-								ChatAdminMessage = "UpdatingRoom";
-							}
-
-							r.Triggers[0] = goThroughDoor;
+							Flags.DoorOpen = true;
 
 							CE("The door opens");
 
@@ -244,19 +226,57 @@ var CYOA = function CYOA() {
 						}
 					}
 					else {
-						CE("The sensor moves a bit, but nothing seems to happen")
+						InventoryGet(C, "ItemArms").Property = { Restrain: null };
+						GotoRoom("Hook");
 					}
 				}
 				else {
 					CE("The sensor moves a bit, but nothing seems to happen")
 				}
 			};
-			r.Triggers.push(lens);
 		}
-
+		let goThroughDoor = new Trigger("go through door")
+		{
+			goThroughDoor.Action = function(){								
+			GotoRoom("Room2");
+			var UpdatedRoom = {
+				Name: ChatRoomData.Name,
+				Description: ChatRoomData.Description,
+				Background: "VaultCorridor",
+				Limit: ChatRoomData.Limit,
+				Admin: ChatRoomData.Admin,
+				Ban: ChatRoomData.Ban,
+				Private: ChatRoomData.Private,
+				Locked: true
+			}
+			ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
+			ChatAdminMessage = "UpdatingRoom";
+			}
+		}
 		let goBack = new Trigger("go back");
 		goBack.Action = () => GotoRoom("Entrance");
 		r.Triggers.push(goBack);
+
+		r.Prepare = level => { 
+			var d = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows, behind her back, and a ballgag in her mouth. " +
+			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or stand in front of the " + lens.Print();
+
+			level.Triggers = [];
+
+			if (!Flags.DoorOpen) {
+				r.Triggers.push(lens);
+				r.Triggers.push(acceptFate);
+			} else{
+				d = "With the door open you can now either" + goThroughDoor.Print() + ", or " + goBack.Print();
+				isContainsAny = true;
+				level.Triggers.push(goThroughDoor);
+
+			}
+			level.Triggers.push(goBack);
+
+			level.Entry = d;
+		};
+
 
 		r.Entry = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows, behind her back, and a ballgag in her mouth. " +
 			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or stand in front of the " + lens.Print();
@@ -397,6 +417,7 @@ var CYOA = function CYOA() {
 		}
 		ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
 		ChatAdminMessage = "UpdatingRoom";
+		var Flags = {};
 	}
 
 	function Process(data) {
