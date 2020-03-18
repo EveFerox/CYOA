@@ -417,7 +417,7 @@ var CYOA = function CYOA() {
 		}
 		ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
 		ChatAdminMessage = "UpdatingRoom";
-		var Flags = {};
+		Flags = {};
 	}
 
 	function Process(data) {
