@@ -142,22 +142,29 @@ var CYOA = function CYOA() {
 		//Triggers
 		let tryCuffs = new Trigger("try cuffs");
 		tryCuffs.Action = function () {
+			if (C.ItemPermission > 2){
+			CA("You need to adjust your item permissions to perform this action") 
+			} else {
 			InventoryWear(C, "LeatherCuffs", "ItemArms", "Default", 20);
-			InventoryLock(C, InventoryGet(C, "ItemArms"), "MistressPadlock", 2313);
 			ChatRoomCharacterUpdate(C);
-			CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them at first, but after a few seconds a mechanical click can be heard as they tighten a bit and a mechanical click of a locking mechanism on each buckle secures them in place");
+			CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them");
 
 			Flags.IsTookCuffs = true;
+		}
 		};
 
 		let tryGag = new Trigger("try gag");
 		tryGag.Action = function () {
+			if (C.ItemPermission > 2){
+			CA("You need to adjust your item permissions to perform this action") 
+			} else {
 			InventoryWear(C, "BallGag", "ItemMouth");
 			InventoryLock(C, InventoryGet(C, "ItemMouth"), "MistressPadlock", 2313);
 			ChatRoomCharacterUpdate(C)
 			CE("The gag fits snugly between your lips, keeping your mouth open. A light mechanical sound and a 'click' can be heard as the straps pull tightly together and a mechanism on the buckle locks it in place");
 
 			Flags.IsTookGag = true;
+		}
 		};
 
 		let goBack = new Trigger("go back");
@@ -207,7 +214,7 @@ var CYOA = function CYOA() {
 		let lens = new Trigger("lens");
 		{
 			lens.Action = function () {
-				if (InventoryGet(C, "ItemArms")){
+				if (InventoryGet(C, "ItemArms") && InventoryGet(C, "ItemMouth")){
 				if (InventoryGet(C, "ItemArms").Asset.Name == "LeatherCuffs") {
 					if (InventoryGet(C, "ItemArms").Property) {
 						if (CharacterIsNaked(C) && InventoryGet(C, "ItemArms").Property.Restrain == "Both" && InventoryGet(C, "ItemMouth").Asset.Name == "BallGag") {
@@ -238,6 +245,27 @@ var CYOA = function CYOA() {
 				else {
 					CE("The sensor moves a bit, but nothing seems to happen")
 				}
+				for(var i=0; i<ChatRoomCharacter.length; i++){
+				var X = ChatRoomCharacter[i]
+				if (InventoryGet(X, "ItemVulva")){
+				if (InventoryGet(X, "ItemVulva").Asset.Name == "VibratingDildo"){
+					if(!InventoryGet(X, "ItemVulva").Property) InventoryGet(X, "ItemVulva").Property = { Intensity: -1 }
+					if(InventoryGet(X, "ItemVulva").Property.Intensity < 3){
+					InventoryGet(X, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
+					InventoryGet(X, "ItemVulva").Property.Intensity = InventoryGet(X, "ItemVulva").Property.Intensity + 1
+					ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(X, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{Tag: "DestinationCharacterName", Text: X.Name, MemberNumber: X.MemberNumber}]} )
+					CharacterLoadEffect(X)
+					ChatRoomCharacterUpdate(X)
+				} else {
+					InventoryGet(X, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
+					InventoryGet(X, "ItemVulva").Property.Intensity = InventoryGet(X, "ItemVulva").Property.Intensity - 1
+					ServerSend("ChatRoomChat", { Content: "Dildo" + ((-1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(X, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{Tag: "DestinationCharacterName", Text: X.Name, MemberNumber: X.MemberNumber}]} )
+					CharacterLoadEffect(X)
+					ChatRoomCharacterUpdate(X)
+				}
+			}
+		}
+		}
 			};
 		}
 		let goThroughDoor = new Trigger("go through door")
@@ -264,7 +292,7 @@ var CYOA = function CYOA() {
 
 		r.Prepare = level => { 
 			var d = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows, behind her back, and a ballgag in her mouth. " +
-			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or stand in front of the " + lens.Print();
+			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or (stand in front of the lens)";
 
 			level.Triggers = [];
 
@@ -284,7 +312,7 @@ var CYOA = function CYOA() {
 
 
 		r.Entry = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows, behind her back, and a ballgag in her mouth. " +
-			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or stand in front of the " + lens.Print();
+			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or (stand in front of the lens)";
 
 		Room.push(r);
 	}
@@ -465,35 +493,11 @@ var CYOA = function CYOA() {
 			setTimeout(Explanation2, 15000);
 			return;
 		}
-
-		// Vibes for everyone else change intensity whenever someone uses the lens
-		var lenstrigger = new RegExp("lens")
-		if (lenstrigger.test(msg) && sender == C){
-			for(var i=0; i<ChatRoomCharacter.length; i++){
-				var X = ChatRoomCharacter[i]
-				if (InventoryGet(X, "ItemVulva")){
-				if (InventoryGet(X, "ItemVulva").Asset.Name == "VibratingDildo"){
-					if(!InventoryGet(X, "ItemVulva").Property) InventoryGet(X, "ItemVulva").Property = { Intensity: -1 }
-					if(InventoryGet(X, "ItemVulva").Property.Intensity < 3){
-					InventoryGet(X, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
-					InventoryGet(X, "ItemVulva").Property.Intensity = InventoryGet(X, "ItemVulva").Property.Intensity + 1
-					ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(X, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{Tag: "DestinationCharacterName", Text: X.Name, MemberNumber: X.MemberNumber}]} )
-					CharacterLoadEffect(X)
-					ChatRoomCharacterUpdate(X)
-				} else {
-					InventoryGet(X, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
-					InventoryGet(X, "ItemVulva").Property.Intensity = InventoryGet(X, "ItemVulva").Property.Intensity - 1
-					ServerSend("ChatRoomChat", { Content: "Dildo" + ((-1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(X, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{Tag: "DestinationCharacterName", Text: X.Name, MemberNumber: X.MemberNumber}]} )
-					CharacterLoadEffect(X)
-					ChatRoomCharacterUpdate(X)
-				}
-			}
-		}
-		}
-		}
+			// Reset room if current player disconnects
+		if ((data.Type == "Action") && (msg.startsWith("serverdisconnect"))) setTimeout(CharacterStillInRoom, 3000);
 
 		//Current player types in chat
-		if (sender == C && data.Type == "Chat") {
+		if (sender == C) {
 			//Iterate room triggers for a match
 			var triggers = CurrentRoom.GetTriggers();
 			for (var i = 0; i < triggers.length; i++) {
@@ -513,8 +517,7 @@ var CYOA = function CYOA() {
 		}
 
 
-	// Reset room if current player disconnects
-	if ((data.Type == "Action") && (msg.startsWith("serverdisconnect"))) setTimeout(CharacterStillInRoom, 3000);
+
 	}
 
 	return {
