@@ -117,7 +117,7 @@ var CYOA = function CYOA() {
 		goDown.Action = () => GotoRoom("Basement");
 		r.Triggers.push(goDown);
 
-		let checkLocker = new Trigger("check locker");
+		let checkLocker = new Trigger("locker");
 		checkLocker.Action = () => GotoRoom("Locker");
 		r.Triggers.push(checkLocker);
 
@@ -131,7 +131,7 @@ var CYOA = function CYOA() {
 		}
 
 		r.Entry = "The dim lights of closed and covered windows lights the room as you return your attention to the main hall. " +
-			"You can " + checkLocker.Print() + " or " + goDown.Print();
+			"You can check the " + checkLocker.Print() + " again or " + goDown.Print() + " to the basement";
 
 		Room.push(r);
 	}
@@ -140,7 +140,7 @@ var CYOA = function CYOA() {
 		let r = new Level("Locker");
 
 		//Triggers
-		let tryCuffs = new Trigger("try cuffs");
+		let tryCuffs = new Trigger("cuffs");
 		tryCuffs.Action = function () {
 			if (C.ItemPermission > 2){
 			CA("You need to adjust your item permissions to perform this action") 
@@ -153,7 +153,7 @@ var CYOA = function CYOA() {
 		}
 		};
 
-		let tryGag = new Trigger("try gag");
+		let tryGag = new Trigger("gag");
 		tryGag.Action = function () {
 			if (C.ItemPermission > 2){
 			CA("You need to adjust your item permissions to perform this action") 
@@ -161,7 +161,7 @@ var CYOA = function CYOA() {
 			InventoryWear(C, "BallGag", "ItemMouth");
 			InventoryLock(C, InventoryGet(C, "ItemMouth"), "MistressPadlock", 2313);
 			ChatRoomCharacterUpdate(C)
-			CE("The gag fits snugly between your lips, keeping your mouth open. A light mechanical sound and a 'click' can be heard as the straps pull tightly together and a mechanism on the buckle locks it in place");
+			CE("The gag fits snugly between your lips to keep them appart. And a light mechanical sound and a 'click' sounds as the straps pull a bit together and a mechanism on the buckle locks it tightly in place");
 
 			Flags.IsTookGag = true;
 		}
@@ -171,7 +171,7 @@ var CYOA = function CYOA() {
 		goBack.Action = () => GotoRoom("Entrance");
 
 		r.Prepare = level => { 
-			var d = "The locker is mostly empty but it contains";
+			var d = "The locker contains";
 
 			level.Triggers = [];
 
@@ -179,6 +179,7 @@ var CYOA = function CYOA() {
 
 			if (!Flags.IsTookCuffs) {
 				d += " a set of leather cuffs" + tryCuffs.Print();
+				if (Flags.IsTookGag) d+= " You could try them on"
 				isContainsAny = true;
 				level.Triggers.push(tryCuffs);
 			}
@@ -186,7 +187,9 @@ var CYOA = function CYOA() {
 			if (!Flags.IsTookGag) {
 				if (isContainsAny)
 					d += " and";
-				d += " a ball gag" + tryGag.Print()
+				d += " a ball gag." + tryGag.Print()
+				if (!Flags.IsTookCuffs) { d+= " You could try them on"}
+				else { d+= " You could try it on"}
 				isContainsAny = true;
 				level.Triggers.push(tryGag);
 			}
@@ -207,7 +210,7 @@ var CYOA = function CYOA() {
 		let r = new Level("Basement");
 
 		//Triggers
-		let acceptFate = new Trigger("open door");
+		let acceptFate = new Trigger("door");
 		{
 			acceptFate.Action = () => CE("The door is simply too solid, and any attempt at prying it open seems meaningless");
 		}
@@ -225,7 +228,7 @@ var CYOA = function CYOA() {
 
 							CE("The door opens");
 
-							r.Entry = "With the door open you can now either (go through door) or (go back)";
+							r.Entry = "With the door open you can now either (go through) the door or (go back) upstairs";
 
 							GotoRoom("Basement");
 						}
@@ -268,7 +271,7 @@ var CYOA = function CYOA() {
 		}
 			};
 		}
-		let goThroughDoor = new Trigger("go through door")
+		let goThroughDoor = new Trigger("go through")
 		{
 			goThroughDoor.Action = function(){								
 			GotoRoom("Room2");
@@ -291,8 +294,8 @@ var CYOA = function CYOA() {
 		r.Triggers.push(goBack);
 
 		r.Prepare = level => { 
-			var d = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows, behind her back, and a ballgag in her mouth. " +
-			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or (stand in front of the lens)";
+			var d = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows behind her back, and a ballgag strapped tight between her lips. " +
+			"Next to the door is some kind of lens. You could try to get the " + acceptFate.Print() + " open, " + goBack.Print() + " upstairs, or stand in front of the (lens)";
 
 			level.Triggers = [];
 
@@ -300,7 +303,7 @@ var CYOA = function CYOA() {
 				r.Triggers.push(lens);
 				r.Triggers.push(acceptFate);
 			} else{
-				d = "With the door open you can now either" + goThroughDoor.Print() + ", or " + goBack.Print();
+				d = "With the door open you can now either" + goThroughDoor.Print() + " the door, or " + goBack.Print() + " upstairs";
 				isContainsAny = true;
 				level.Triggers.push(goThroughDoor);
 
@@ -311,9 +314,6 @@ var CYOA = function CYOA() {
 		};
 
 
-		r.Entry = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows, behind her back, and a ballgag in her mouth. " +
-			"Next to the door is some kind of lens. You could try to " + acceptFate.Print() + ", " + goBack.Print() + " or (stand in front of the lens)";
-
 		Room.push(r);
 	}
 
@@ -321,7 +321,7 @@ var CYOA = function CYOA() {
 		let r = new Level("Hook");
 
 		//Triggers
-		let hookCloth = new Trigger("hook cloth");
+		let hookCloth = new Trigger("cloth");
 		{
 			hookCloth.Action = function () {
 				CE("The hook seems like it almost was made for this, and it even moves a bit to swiftly tear up your clothes, then retracts back into the wall.");
@@ -331,20 +331,21 @@ var CYOA = function CYOA() {
 			};
 			r.Triggers.push(hookCloth);
 		}
-		let struggle = new Trigger("hook gag");
+		let struggle = new Trigger("gag");
 		{
 			struggle.Action = function () {
-				CE("The hook retracts back into the wall at any attempt at moving the gag close to it. Maybe standing in front of the lens again will extend it once more?");
+				CE("The hook retracts back into the wall at any attempt at moving the gag close to it. Maybe standing in front of the lens again will extend it again?");
 				GotoRoom("Basement", false);
 			};
 			r.Triggers.push(struggle);
 		}
-		let hookCuff = new Trigger("hook cuff");
+		let hookCuff = new Trigger("cuff");
 		{
 			hookCuff.Action = function () {
-				if (InventoryGet(C, "ItemArms").Property) {
+				DialogFocusItem = InventoryGet(C, "ItemArms");
+				if (DialogFocusItem.Property == null) DialogFocusItem.Property = { Restrain: null };
+				if (InventoryGet(C, "ItemArms").Property.Restrain != "Both") {
 					var NewPose = "Both"
-					DialogFocusItem = InventoryGet(C, "ItemArms");
 					DialogFocusItem.Property.Restrain = NewPose;
 					DialogFocusItem.Property.SetPose = [(NewPose == "Wrist") ? "BackBoxTie" : "BackElbowTouch"];
 					DialogFocusItem.Property.Effect = ["Block", "Prone"];
@@ -352,15 +353,15 @@ var CYOA = function CYOA() {
 					if (NewPose == "Both") DialogFocusItem.Property.Difficulty = 6;
 					CharacterRefresh(C);
 					ChatRoomCharacterUpdate(C)
-					CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe you can hook something else as well?")
+					CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well")
 				} else {
-					CE("The cuffs slide onto the hook, but they're simply too sturdy to go anywhere. Maybe you can hook something else instead?")
+					CE("The cuffs slide onto the hook, but they're simply too sturdy to go anywhere. Maybe something else can trigger it")
 				}
 			};
 			r.Triggers.push(hookCuff);
 		}
 
-		r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe you can hook something onto it " + struggle.Print() + ", " + hookCuff.Print() + " or " + hookCloth.Print();
+		r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it" + struggle.Print() + ", " + hookCuff.Print() + " or " + hookCloth.Print();
 
 		Room.push(r);
 	}
@@ -369,22 +370,23 @@ var CYOA = function CYOA() {
 		let r = new Level("Room2");
 
 		//Triggers
-		let acceptFate = new Trigger("check door");
+		let acceptFate = new Trigger("door");
 		{
 			acceptFate.Action = () => CE("The door seems to have locked behind you leaving no way back at the current moment.");
 			r.Triggers.push(acceptFate);
 		}
-		let struggle = new Trigger("stand on platform");
+		let struggle = new Trigger("platform");
 		{
 			struggle.Action = function () {
 				InventoryWear(C, "SpreaderMetal", "ItemFeet", "Default", 20);
+				InventoryWear(C, "Corset5", "ItemTorso",  InventoryGet(C, "HairFront").Color, 20)
 				ChatRoomCharacterUpdate(C);
 				GotoRoom("Stuck");
 			};
 			r.Triggers.push(struggle);
 		}
 
-		r.Entry = "The door closes behind you" + acceptFate.Print() + " as you enter a round room, with a slightly elevated platform in the middle " + struggle.Print();
+		r.Entry = "The door closes behind you" + acceptFate.Print() + " as you enter a round room, with a slightly elevated platform in the middle (stand on the platform)";
 
 		Room.push(r);
 	}
@@ -394,18 +396,16 @@ var CYOA = function CYOA() {
 
 		//Triggers
 		let sameAction = () => {
-			InventoryWear(C, "OneBarPrison", "ItemDevices", "Default", 20)
 			InventoryWear(C, "VibratingDildo", "ItemVulva")
-			InventoryWear(C, "Corset4", "ItemTorso",  C.LabelColor, 20)
 			ChatRoomCharacterUpdate(C)
-			CE("The phallus penetrates your pussy lips pushing deep with the metal pole locking in place. Another set of arms lifts up to tightly squeeze your waist together in a corset before the platform you're standing on starts elevating towards an opening hatch in the ceiling, to put you on display for whoever might enter next. Maybe if they're nice they'll even help you")
+			CE("The pole pushes the dildo deep between your pussy lips, then releases and retracts.")
 
 			setTimeout(setVibe, 500);
 
-			Reset();
+			GotoRoom("Stuck2");
 		};
 
-		let acceptFate = new Trigger("accept fate");
+		let acceptFate = new Trigger("relax");
 		acceptFate.Action = sameAction;
 		r.Triggers.push(acceptFate);
 
@@ -413,24 +413,48 @@ var CYOA = function CYOA() {
 		struggle.Action = sameAction;
 		r.Triggers.push(struggle);
 
-		r.Entry = "Mechanical arms extend from the platform tolock cuffs with a metal beam between them around your ankles." +
-			" The arms then stay in place to keep you still as a metal pole with a vibrating phallus at the end starts extending from the platform towards your crotch. You can " + struggle.Print() + " or " + acceptFate.Print();
+		r.Entry = "A light mechanical rumble fills the room, and small metal panels open on the platform, extending mechanical arms to grab and lock a set of cuffs with a spreader between your ankles." +
+			" More panels open extending mechanical arms to tightly snare a corset around your waist so it squeezes you. The arms then lock in place to keep you still, while a pole extends towards your crotch from below, with a vibrating dildo at the end. You can " + struggle.Print() + " or try to " + acceptFate.Print() + "and accept your fate";
 
 		Room.push(r);
+	}
+	{
+		Let r = new Level("Stuck2")
+
+		let sameAction = () => {
+			
+			ChatRoomCharacterUpdate(C)
+			CE("The pole pushes the dildo deep between your pussy lips, then releases and retracts.")
+
+			setTimeout(setVibe, 500);
+
+			GotoRoom("Stuck2");
+		};
+
+		let acceptFate = new Trigger("relax");
+		acceptFate.Action = sameAction;
+		r.Triggers.push(acceptFate);
+
+		var struggle = new Trigger("struggle");
+		struggle.Action = sameAction;
+		r.Triggers.push(struggle);
+
+		r.Entry = "The pole pushes the vibrating dildo deep between your pussy lips. The mechanical arms keeps firmly locked around your waist while another set extends to lock a chastity belt over the dildo. You can still (stuggle) or (relax)"
 	}
 
 	/**@type {Level} */
 	var CurrentRoom = Room[0];
 
 	function FollowUp(a) {
-		CE("- The warehouse is fairly big, but mostly empty. There's a locker you can check on the wall to the right(check locker), or you can head down the stairs to the left, into the basement(go down)")
+		CE("- The warehouse is fairly big, but mostly empty. There's a locker you can check out on the wall to the right(locker), or you can head down the stairs to the left, into the basement(go down)")
 	}
 	function Explanation(r) {
-		CA("- The text within parantheses (like this) can be used as part of an emote to perform that action. There may also be hidden aditional actions, but those you will have to guess. You may also have to use normal game mechanics to proceed at some points")
+		CA("Type an emote containing (locker) or (go down) into chat, to get started.")
 	}
 	function Explanation2() {
-		CA("- I'm slightly afk, working on the script but will check in now and then to see that everything is alright so feel free to ask if you have questions. Try (check locker) or (go down) in the chat if you haven't gotten started yet. Also, the script won't work if permissions are set to owner and whitelist only")
+		CA("- I might be afk. Response times on questions might not be immediate")
 	}
+
 
 	function Reset() {
 		var UpdatedRoom = {
@@ -464,7 +488,7 @@ var CYOA = function CYOA() {
 		if (!InventoryGet(C, "ItemVulva").Property) InventoryGet(C, "ItemVulva").Property = { Intensity: -1 }
 		if (InventoryGet(C, "ItemVulva").Property.Intensity < 2) {
 				InventoryGet(C, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
-				InventoryGet(C, "ItemVulva").Property.Intensity = InventoryGet(C, "ItemVulva").Property.Intensity + 2
+				InventoryGet(C, "ItemVulva").Property.Intensity = InventoryGet(C, "ItemVulva").Property.Intensity + 1
 				ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(C, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{ Tag: "DestinationCharacterName", Text: C.Name, MemberNumber: C.MemberNumber }] })
 				CharacterLoadEffect(C)
 				ChatRoomCharacterUpdate(C)
@@ -492,7 +516,7 @@ var CYOA = function CYOA() {
 			C = ChatRoomCharacter[ChatRoomCharacter.length - 1];
 			GotoRoom("Entrance", false);
 
-			CE("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock");
+			CE("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock. Before you is the wide interior of what appears to be an abbandoned warehouse");
 			setTimeout(FollowUp, 3000);
 			setTimeout(Explanation, 7000);
 			setTimeout(Explanation2, 15000);
