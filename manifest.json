@@ -1,0 +1,43 @@
+{
+    "manifest_version": 2,
+    "name": "Bondage Club CYOA",
+    "description": "Injects CYOA into your live BC page.",
+    "version": "0.1",
+    "background": {
+        "scripts": [
+            "Ext_Backgound.js"
+        ]
+    },
+    "browser_action": {
+        "default_title": "CYOA",
+        "default_popup": "Ext_Popup.html"
+    },
+    "content_scripts": [
+        {
+            "run_at": "document_end",
+            "matches": [
+                "https://www.bondageprojects.com/college/V13U/BondageClub/*",
+                "https://www.bondageprojects.elementfx.com/*"
+            ],
+            "all_frames": true,
+            "js": [ 
+                "Utils.js",
+                "Engine.js",
+                "CYOA.js",
+                "Ext_Content.js" 
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        "*"
+    ],
+    "permissions": [
+        "declarativeContent",
+        "activeTab",
+        "tabs",
+        "<all_urls>",
+        "file://*/*",
+        "http://*/*",
+        "https://*/*"
+    ]
+}

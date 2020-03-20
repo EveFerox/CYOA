@@ -1,48 +1,19 @@
 // @ts-check
 
-/**
- * The variable to the CYOA
- * Run CYOA().Start() in console after hosting a room.
- */
-var CYOA = function CYOA() {
+/**@param {Engine} Engine */
+function ElliesStory(Engine) {
 
-	function CharFromID(id) {
-		var char = null;
-		for (var i = 0; i < Character.length; i++)
-			if (Character[i].MemberNumber == id)
-				char = Character[i];
-		return char;
-	}
+	var S = new Story(Engine, "Ellies");
 
-	function CA(t) {
-		var Dictionary = [];
-		Dictionary.push({ Tag: "SourceCharacter removes the PrevAsset from DestinationCharacter FocusAssetGroup.", Text: t });
-		ServerSend("ChatRoomChat", { Content: "ActionRemove", Type: "Action", Dictionary: Dictionary });
-	}
+	S.StartAction = () => {
+		CE("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock");
 
-	function CE(t) {
-		var Dictionary = [];
-		Dictionary.push({ Tag: "SourceCharacter removes the PrevAsset from DestinationCharacter FocusAssetGroup.", Text: t });
-		ServerSend("ChatRoomChat", { Content: "*" + t, Type: "Emote", Dictionary: Dictionary });
-	}
+		setTimeout(FollowUp, 3000);
+		setTimeout(Explanation, 7000);
+		setTimeout(Explanation2, 15000);
 
-	/** Finds a level by name
-	 * @param {string} roomName 
-	 * @returns {Level}
-	 */
-	function GetRoom(roomName) {
-		return Room.find(x => x.Name == roomName);
-	}
-
-	/** Finds and moves the player to the Level
-	 * @param {string} roomName
-	 * @param {boolean} printRoomDesc
-	 */
-	function GotoRoom(roomName, printRoomDesc = true) {
-		var found = GetRoom(roomName);
-		if (found == null) {
-			console.log("[ERROR] Room " + roomName + " not found!");
-			return;
+		function FollowUp(a) {
+			CE("- The warehouse is fairly big, but mostly empty. There's a locker you can check on the wall to the right(check locker), or you can head down the stairs to the left, into the basement(go down)")
 		}
 
 		CurrentRoom = found;
@@ -72,51 +43,17 @@ var CYOA = function CYOA() {
 		constructor(Text) {
 			this.Text = Text;
 		}
-
-		/**Use to print in messages; Should not be overriden 
-		 * @returns {string} */
-		Print = () => "(" + this.Text + ")";
-	}
-
-	class Level {
-		/**@type {string} */
-		Name = "ROOM NAME";
-		/**@type {string} */
-		Entry = "Will display when player enters the room";
-		/**@type {Trigger[]} */
-		Triggers = [];
-
-		/**@param {Level} level */
-		Prepare = level => { };
-
-		/**@returns {string} */
-		Describe = () => this.Entry;
-
-		/**@returns {Trigger[]} */
-		GetTriggers = () => this.Triggers;
-
-		/**
-		 * @param {string} Name
-		 */
-		constructor(Name) {
-			this.Name = Name;
+		function Explanation2() {
+			CA("- I'm slightly afk, working on the script but will check in now and then to see that everything is alright so feel free to ask if you have questions. Try (check locker) or (go down) in the chat if you haven't gotten started yet. Also, the script won't work if permissions are set to owner and whitelist only")
 		}
-	}
-
-	/**All story persistent flags
-	 * @type {object} */
-	var Flags = {};
-
-	/**All story levels
-	 * @type {Level[]} */
-	var Room = [];
+	};
 
 	{
-		let r = new Level("Entrance");
+		let r = S.EntryLevel = new Level("Entrance");
 
 		//Triggers
 		let goDown = new Trigger("go down");
-		goDown.Action = () => GotoRoom("Basement");
+		goDown.Action = () => Engine.GotoRoom("Basement");
 		r.Triggers.push(goDown);
 
 		let checkLocker = new Trigger("locker");
@@ -135,7 +72,7 @@ var CYOA = function CYOA() {
 		r.Entry = "The dim lights of closed and covered windows lights the room as you return your attention to the main hall. " +
 			"You can check the " + checkLocker.Print() + " again or " + goDown.Print() + " to the basement";
 
-		Room.push(r);
+		S.Levels.push(r);
 	}
 
 	{
@@ -186,7 +123,7 @@ var CYOA = function CYOA() {
 				level.Triggers.push(tryCuffs);
 			}
 
-			if (!Flags.IsTookGag) {
+			if (!S.Flags.IsTookGag) {
 				if (isContainsAny)
 					d += " and";
 				d += " a ball gag."
@@ -205,7 +142,7 @@ var CYOA = function CYOA() {
 			level.Entry = d + ". You could of course also go back (go back)";
 		};
 
-		Room.push(r);
+		S.Levels.push(r);
 	}
 
 	{
@@ -224,23 +161,23 @@ var CYOA = function CYOA() {
 					if (InventoryGet(C, "ItemArms").Property) {
 						if (CharacterIsNaked(C) && InventoryGet(C, "ItemArms").Property.Restrain == "Both" && InventoryGet(C, "ItemMouth").Asset.Name == "BallGag") {
 
-							var r = GetRoom("Basement");
+							var r = S.GetRoom("Basement");
 
-							Flags.DoorOpen = true;
+							S.Flags.DoorOpen = true;
 
 							CE("The door opens");
 
 							r.Entry = "With the door open you can now either (go through the door) or (go back) upstairs";
 
-							GotoRoom("Basement");
+							Engine.GotoRoom("Basement");
 						}
 						else {
-							GotoRoom("Hook");
+							Engine.GotoRoom("Hook");
 						}
 					}
 					else {
-						InventoryGet(C, "ItemArms").Property = { Restrain: null };
-						GotoRoom("Hook");
+						InventoryGet(Engine.C, "ItemArms").Property = { Restrain: null };
+						Engine.GotoRoom("Hook");
 					}
 				}
 				else {
@@ -275,24 +212,24 @@ var CYOA = function CYOA() {
 		}
 		let goThroughDoor = new Trigger("go through")
 		{
-			goThroughDoor.Action = function(){								
-			GotoRoom("Room2");
-			var UpdatedRoom = {
-				Name: ChatRoomData.Name,
-				Description: ChatRoomData.Description,
-				Background: "VaultCorridor",
-				Limit: ChatRoomData.Limit,
-				Admin: ChatRoomData.Admin,
-				Ban: ChatRoomData.Ban,
-				Private: ChatRoomData.Private,
-				Locked: true
-			}
-			ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-			ChatAdminMessage = "UpdatingRoom";
+			goThroughDoor.Action = function () {
+				Engine.GotoRoom("Room2");
+				var UpdatedRoom = {
+					Name: ChatRoomData.Name,
+					Description: ChatRoomData.Description,
+					Background: "VaultCorridor",
+					Limit: ChatRoomData.Limit,
+					Admin: ChatRoomData.Admin,
+					Ban: ChatRoomData.Ban,
+					Private: ChatRoomData.Private,
+					Locked: true
+				}
+				ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
+				ChatAdminMessage = "UpdatingRoom";
 			}
 		}
 		let goBack = new Trigger("go back");
-		goBack.Action = () => GotoRoom("Entrance");
+		goBack.Action = () => Engine.GotoRoom("Entrance");
 		r.Triggers.push(goBack);
 
 		r.Prepare = level => { 
@@ -301,7 +238,7 @@ var CYOA = function CYOA() {
 
 			level.Triggers = [];
 
-			if (!Flags.DoorOpen) {
+			if (!S.Flags.DoorOpen) {
 				r.Triggers.push(lens);
 				r.Triggers.push(acceptFate);
 			} else{
@@ -348,11 +285,9 @@ var CYOA = function CYOA() {
 				if (DialogFocusItem.Property == null) DialogFocusItem.Property = { Restrain: null };
 				if (InventoryGet(C, "ItemArms").Property.Restrain != "Both") {
 					var NewPose = "Both"
-					DialogFocusItem.Property.Restrain = NewPose;
-					DialogFocusItem.Property.SetPose = [(NewPose == "Wrist") ? "BackBoxTie" : "BackElbowTouch"];
-					DialogFocusItem.Property.Effect = ["Block", "Prone"];
-					DialogFocusItem.Property.SelfUnlock = (NewPose == "Wrist");
-					if (NewPose == "Both") DialogFocusItem.Property.Difficulty = 6;
+				if (InventoryGet(Engine.C, "ItemArms").Property) {
+					var NewPose = "Both"
+					DialogFocusItem = InventoryGet(Engine.C, "ItemArms");
 					CharacterRefresh(C);
 					ChatRoomCharacterUpdate(C)
 					CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well")
@@ -365,7 +300,7 @@ var CYOA = function CYOA() {
 
 		r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it (hook gag), (hook cuffs) or (hook clothes)";
 
-		Room.push(r);
+		S.Levels.push(r);
 	}
 
 	{
@@ -390,7 +325,7 @@ var CYOA = function CYOA() {
 
 		r.Entry = "The door closes behind you" + acceptFate.Print() + " as you enter a round room, with a slightly elevated platform in the middle (stand on the platform)";
 
-		Room.push(r);
+		S.Levels.push(r);
 	}
 
 	{
@@ -782,34 +717,7 @@ var CYOA = function CYOA() {
 			if (regex.test(msg))
 				GotoRoom(CurrentRoom.Name);
 		}
-
-
-
 	}
 
-	return {
-		Start: () => {
-			CA("=== CYOA Starting ===");
-			console.log("CYOA Starting...");
-			ServerSocket.on("ChatRoomMessage", Process);
-			Reset();
-			GotoRoom(CurrentRoom.Name);
-		}
-	};
-}
-
-// Shortcut to start the story
-// Hit the key S to start the story while in a chat room
-{
-	let isStarted = false;
-
-	window.addEventListener("keydown", (e) => {
-		if (isStarted) return;
-		if (CurrentScreen != "ChatRoom") return;
-
-		if (String.fromCharCode(e.keyCode) == "S") {
-			CYOA().Start();
-			isStarted = true;
-		}
-	});
+	return S;
 }
