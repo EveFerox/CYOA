@@ -5,14 +5,26 @@ class Trigger {
     /**@type {string} */
     Text = "TRIGGER TEXT";
 
-	/**Tests text for match
-	 * @param {string} txt Text to test
-	 */
-    Match = (txt) => new RegExp(this.Text).test(txt);
+    /**@type {RegExp} */
+    Regex = null;
 
-	/**Function for triggers logic
-	 * @type {function} */
-    Action = () => { };
+	/**Tests Regex or Text of this trigger
+	 * @param {string} txt Text to test
+     * @returns {boolean}
+	 */
+    IsMatch = txt => {
+        if (this.Regex == null) {
+            // No regex, try to match text
+            return new RegExp(this.Text).test(txt);
+        }
+
+        return this.Regex.test(txt);
+    }
+
+	/**Function for this triggers logic
+     * @param {string} txt
+     */
+    Action = txt => { };
 
 	/**
 	 * @param {string} Text
@@ -156,29 +168,63 @@ class Engine {
         this.S.Reset();
     }
 
+    UnlockRoom() {
+        var UpdatedRoom = {
+            Name: ChatRoomData.Name,
+            Description: ChatRoomData.Description,
+            Background: "AbandonedBuilding",
+            Limit: (ChatRoomCharacter.length + 1).toString(),
+            Admin: ChatRoomData.Admin,
+            Ban: ChatRoomData.Ban,
+            Private: true,
+            Locked: false
+        }
+        ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
+        ChatAdminMessage = "UpdatingRoom";
+    }
+
+    CharacterStillInRoom() {
+        var resetcheck = 0
+        for (var i = 0; i < ChatRoomCharacter.length; i++) {
+            if (this.C.MemberNumber == ChatRoomCharacter[i].MemberNumber)
+                resetcheck = 1
+        }
+        if (resetcheck != 1)
+            this.Reset()
+        resetcheck = 0
+    }
+
     Process(data) {
         var sender = CharFromID(data.Sender);
         var msg = String(data.Content).toLowerCase();
 
-        if ((data.Type == "Action") && (msg.startsWith("serverenter"))) {
-            var UpdatedRoom = {
-                Name: ChatRoomData.Name,
-                Description: ChatRoomData.Description,
-                Background: "AbandonedBuilding",
-                Limit: "2",
-                Admin: ChatRoomData.Admin,
-                Ban: ChatRoomData.Ban,
-                Private: ChatRoomData.Private,
-                Locked: true
+        if (data.Type == "Action") {
+            if (msg.startsWith("serverenter")) {
+                var UpdatedRoom = {
+                    Name: ChatRoomData.Name,
+                    Description: ChatRoomData.Description,
+                    Background: "AbandonedBuilding",
+                    Limit: "2",
+                    Admin: ChatRoomData.Admin,
+                    Ban: ChatRoomData.Ban,
+                    Private: ChatRoomData.Private,
+                    Locked: true
+                }
+                ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
+                ChatAdminMessage = "UpdatingRoom";
+
+                this.C = ChatRoomCharacter[ChatRoomCharacter.length - 1];
+                this.GotoRoom("Entrance", false);
+
+                this.S.StartAction();
+                return;
             }
-            ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-            ChatAdminMessage = "UpdatingRoom";
 
-            this.C = ChatRoomCharacter[ChatRoomCharacter.length - 1];
-            this.GotoRoom("Entrance", false);
-
-            this.S.StartAction();
-            return;
+            // Reset room if current player disconnects
+            if (msg.startsWith("serverdisconnect") || msg.startsWith("serverLeave")) {
+                setTimeout(this.CharacterStillInRoom, 3000);
+                return;
+            }
         }
 
         //Current player types in chat
@@ -187,10 +233,9 @@ class Engine {
             var triggers = this.CurrentLevel.GetTriggers();
             for (var i = 0; i < triggers.length; i++) {
                 var trigger = triggers[i];
-                var patt = new RegExp(trigger.Text);
-                if (patt.test(msg)) {
+                if (trigger.IsMatch(msg)) {
                     console.log("[INFO] Trigger hit: " + trigger.Text);
-                    trigger.Action();
+                    trigger.Action(msg);
                     return;
                 }
             }

@@ -1,5 +1,3 @@
-// @ts-check
-
 function CharFromID(id) {
     var char = null;
     for (var i = 0; i < Character.length; i++)
