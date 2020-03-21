@@ -13,7 +13,7 @@
 
     AddScript(Folder + "Utils.js");
     AddScript(Folder + "Engine.js")
-    AddScript(Folder +"CYOA.js");
+    AddScript(Folder + "CYOA.js");
 }
 
 /**Shortcut to start the story

@@ -11,6 +11,7 @@ Choose your own adventure for Bondage Club
 4. Host room and click on the extensions button to start
 
 ## TODO
-- Triggers to use regex 
 - Better Story.Flags
+- Move room admin actions to Utils
+- Utils - vibes settings
 - Create story auto test tool

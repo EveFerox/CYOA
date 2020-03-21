@@ -82,21 +82,22 @@ class Story {
      * @type {function} */
     StartAction = () => { };
 
+    /**@type {Engine} */
+    Engine;
+
     /**
-     * @param {Engine} Engine
      * @param {string} Name
      */
-    constructor(Engine, Name) {
-        this.Engine = Engine;
+    constructor(Name) {
         this.Name = Name;
     }
     
 	/** Finds a level by name
-	 * @param {string} roomName 
+	 * @param {string} levelName 
 	 * @returns {Level}
 	 */
-    GetRoom(roomName) {
-        return this.Levels.find(x => x.Name == roomName);
+    GetLevel(levelName) {
+        return this.Levels.find(x => x.Name == levelName);
     }
 
     /**Resets the story to its default state */
@@ -108,48 +109,105 @@ class Story {
 /**The CYOA Engine */
 class Engine {
 
-    /**@type {Story} The current story loaded */
-    S = null;
+    /**The single instance of the CYOA engine.
+     * @returns {Engine}
+     */
+    static get Instance() {
+        if (Engine.#instance == null) {
+            Engine.#instance = new Engine();
+        }
+        return Engine.#instance;
+    }
+    /**@type {Engine} */
+    // @ts-ignore
+    static #instance;
 
-    /**@type {Level} */
-    CurrentLevel = null;
+    /**@type {Story} The current story loaded */
+    #S = null;
+
+    /**@returns {Story} */
+    get CurrentStory() {
+        return this.#S;
+    }
+
+    /**Current Level
+     * @type {Level} */
+    #level = null;
+
+    /**@returns {Level} */
+    get CurrentLevel() {
+        return this.#level;
+    }
+
+    /**@param {Level} level */
+    #setCurrentLevel = (level)=> {
+        this.#level = level;
+        console.log(`[INFO] CurrentLevel: ${this.#level.Name}`);
+    }
 
     /**Current Player */
     C = null;
 
+    #boundChatMessage;
+    #boundRoomSync;
+
     /**Starts story
-     * @param {Story} story */
+     * @param {(Story)} story 
+     */
     Start(story) {
-        CA("=== CYOA Starting ===");
-        this.S = story;
+        if (this.#S != null) {
+            this.Stop();
+        }
+
+        this.#S = story;
+
+        CA("=== CYOA Engine Starting ===");
+        console.log("=== CYOA Engine Starting ===");
+
         this.Reset();
         this.C = Player;
-        this.CurrentLevel = this.S.EntryLevel;
-        this.S.StartAction();
-        this.GotoRoom(this.CurrentLevel.Name);
-        console.log("CYOA Starting...");
-        ServerSocket.on("ChatRoomMessage", (data => this.Process(data)).bind(this));  
+        this.#S.StartAction();
+        this.GotoLevel(this.#S.EntryLevel.Name);
+
+        this.#boundChatMessage = (data => this.#OnRoomMessage(data)).bind(this);
+        ServerSocket.on("ChatRoomMessage", this.#boundChatMessage);
+
+        this.#boundRoomSync = (data => this.#OnRoomSync(data)).bind(this);
+        ServerSocket.on("ChatRoomSync", this.#boundRoomSync);  
+    }
+
+    /**Starts story from function
+     * @param {(function)} storyFunc */
+    StartStoryFunc(storyFunc) {
+        this.Start(storyFunc(this));
+    }
+
+    /**Stops the current story */
+    Stop() {
+
+        CA("=== CYOA Engine Stopping ===");
+        console.log("=== CYOA Engine Stopping ===");
+        ServerSocket.off("ChatRoomMessage", this.#boundChatMessage);
+        ServerSocket.off("ChatRoomSync", this.#boundRoomSync);  
     }
 
 	/** Finds and moves the player to the Level
-	 * @param {string} roomName
+	 * @param {string} levelName
 	 * @param {boolean} printRoomDesc
 	 */
-    GotoRoom(roomName, printRoomDesc = true) {
-        var found = this.S.GetRoom(roomName);
+    GotoLevel(levelName, printRoomDesc = true) {
+        var found = this.#S.GetLevel(levelName);
         if (found == null) {
-            console.log("[ERROR] Room " + roomName + " not found!");
+            console.log("[ERROR] Room " + levelName + " not found!");
             return;
         }
 
-        this.CurrentLevel = found;
+        this.#setCurrentLevel(found);
 
         this.CurrentLevel.Prepare(this.CurrentLevel);
 
         if (printRoomDesc)
             CE(this.CurrentLevel.Describe());
-
-        console.log("[INFO] GotoRoom: " + this.CurrentLevel.Name);
     }
 
     Reset() {
@@ -165,7 +223,7 @@ class Engine {
         }
         ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
         ChatAdminMessage = "UpdatingRoom";
-        this.S.Reset();
+        this.#S.Reset();
     }
 
     UnlockRoom() {
@@ -194,7 +252,7 @@ class Engine {
         resetcheck = 0
     }
 
-    Process(data) {
+    #OnRoomMessage = (data) => {
         var sender = CharFromID(data.Sender);
         var msg = String(data.Content).toLowerCase();
 
@@ -214,9 +272,9 @@ class Engine {
                 ChatAdminMessage = "UpdatingRoom";
 
                 this.C = ChatRoomCharacter[ChatRoomCharacter.length - 1];
-                this.GotoRoom("Entrance", false);
+                this.GotoLevel("Entrance", false);
 
-                this.S.StartAction();
+                this.#S.StartAction();
                 return;
             }
 
@@ -243,7 +301,11 @@ class Engine {
             //Print room entry
             var regex = /(look|help)/mg;
             if (regex.test(msg))
-                this.GotoRoom(this.CurrentLevel.Name);
+                this.GotoLevel(this.CurrentLevel.Name);
         }
+    }
+
+    #OnRoomSync = (data) => {
+        //TODO
     }
 }

@@ -1,9 +1,28 @@
 // @ts-check
 
-/**@param {Engine} Engine */
-function ElliesStory(Engine) {
+function ElliesStory() {
 
-	let S = new Story(Engine, "Ellies");
+	let S = new Story("Ellies");
+
+	class Flags {
+		IsTookCuffs = false;
+		IsTookGag = false;
+
+		IsDoorOpen = false;
+
+		IsEntryRead = false;
+
+		/**@type {number} */
+		CorrectButton = Math.round(Math.random() * 20);
+
+		/**@type {number} */
+		AtButton = null;
+	}
+
+	/**@type {Flags} */
+	let flags;
+
+	let E = S.Engine;
 
 	let C = null;
 
@@ -14,8 +33,9 @@ function ElliesStory(Engine) {
 		setTimeout(Explanation, 7000);
 		setTimeout(Explanation2, 15000);
 
-		C = Engine.C;
-		S.Flags.rightButton = Math.round(Math.random() * 20);
+		C = E.C;
+
+		S.Flags = flags = new Flags();
 	};
 
 	//Entrance
@@ -24,11 +44,11 @@ function ElliesStory(Engine) {
 
 		//Triggers
 		let goDown = new Trigger("go down");
-		goDown.Action = () => Engine.GotoRoom("Basement");
+		goDown.Action = () => E.GotoLevel("Basement");
 		r.Triggers.push(goDown);
 
 		let checkLocker = new Trigger("locker");
-		checkLocker.Action = () => Engine.GotoRoom("Locker");
+		checkLocker.Action = () => E.GotoLevel("Locker");
 		r.Triggers.push(checkLocker);
 
 		{
@@ -60,7 +80,7 @@ function ElliesStory(Engine) {
 				ChatRoomCharacterUpdate(C);
 				CE("The cuffs slide on nicely. There doesn't seem to be anything unusual about them");
 
-				S.Flags.IsTookCuffs = true;
+				flags.IsTookCuffs = true;
 			}
 		};
 
@@ -74,12 +94,12 @@ function ElliesStory(Engine) {
 				ChatRoomCharacterUpdate(C)
 				CE("The gag fits snugly between your lips to keep them appart. And a light mechanical sound and a 'click' sounds as the straps pull a bit together and a mechanism on the buckle locks it tightly in place");
 
-				S.Flags.IsTookGag = true;
+				flags.IsTookGag = true;
 			}
 		};
 
 		let goBack = new Trigger("back");
-		goBack.Action = () => Engine.GotoRoom("Entrance");
+		goBack.Action = () => E.GotoLevel("Entrance");
 
 		r.Prepare = level => {
 			var d = "The locker contains";
@@ -88,18 +108,18 @@ function ElliesStory(Engine) {
 
 			var isContainsAny = false;
 
-			if (!S.Flags.IsTookCuffs) {
+			if (!flags.IsTookCuffs) {
 				d += " a set of leather cuffs";
-				if (S.Flags.IsTookGag) d += " You could try them on. (try on the cuffs)"
+				if (flags.IsTookGag) d += " You could try them on. (try on the cuffs)"
 				isContainsAny = true;
 				level.Triggers.push(tryCuffs);
 			}
 
-			if (!S.Flags.IsTookGag) {
+			if (!flags.IsTookGag) {
 				if (isContainsAny)
 					d += " and";
 				d += " a ball gag."
-				if (!S.Flags.IsTookCuffs) { d += " You could try them on. (try on the cuffs) or (try on the gag)" }
+				if (!flags.IsTookCuffs) { d += " You could try them on. (try on the cuffs) or (try on the gag)" }
 				else { d += " You could try it on. (try on the gag)" }
 				isContainsAny = true;
 				level.Triggers.push(tryGag);
@@ -132,23 +152,23 @@ function ElliesStory(Engine) {
 					if (InventoryGet(C, "ItemArms").Property) {
 						if (CharacterIsNaked(C) && InventoryGet(C, "ItemArms").Property.Restrain == "Both" && InventoryGet(C, "ItemMouth").Asset.Name == "BallGag") {
 
-							var r = S.GetRoom("Basement");
+							var r = S.GetLevel("Basement");
 
-							S.Flags.DoorOpen = true;
+							flags.IsDoorOpen = true;
 
 							CE("The door opens");
 
 							r.Entry = "With the door open you can now either (go through the door) or (go back) upstairs";
 
-							Engine.GotoRoom("Basement");
+							E.GotoLevel("Basement");
 						}
 						else {
-							Engine.GotoRoom("Hook");
+							E.GotoLevel("Hook");
 						}
 					}
 					else {
-						InventoryGet(Engine.C, "ItemArms").Property = { Restrain: null };
-						Engine.GotoRoom("Hook");
+						InventoryGet(E.C, "ItemArms").Property = { Restrain: null };
+						E.GotoLevel("Hook");
 					}
 				}
 				else {
@@ -183,7 +203,7 @@ function ElliesStory(Engine) {
 
 		let goThroughDoor = new Trigger("go through")
 		goThroughDoor.Action = function () {
-			Engine.GotoRoom("Room2");
+			E.GotoLevel("Room2");
 
 			//Change background
 			var UpdatedRoom = {
@@ -201,7 +221,7 @@ function ElliesStory(Engine) {
 		}
 
 		let goBack = new Trigger("go back");
-		goBack.Action = () => Engine.GotoRoom("Entrance");
+		goBack.Action = () => E.GotoLevel("Entrance");
 
 		r.Prepare = level => {
 			var d = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows behind her back, and a ballgag strapped tight between her lips. " +
@@ -209,7 +229,7 @@ function ElliesStory(Engine) {
 
 			level.Triggers = [];
 
-			if (!S.Flags.DoorOpen) {
+			if (!flags.IsDoorOpen) {
 				level.Triggers.push(lens);
 				level.Triggers.push(acceptFate);
 			} else {
@@ -236,7 +256,7 @@ function ElliesStory(Engine) {
 				CE("The hook seems like it almost was made for this, and it even moves a bit to swiftly tear up your clothes, then retracts back into the wall. Standing in front of it might extend it once more (lens)");
 				CharacterNaked(C);
 				ChatRoomCharacterUpdate(C);
-				Engine.GotoRoom("Basement", false);
+				E.GotoLevel("Basement", false);
 			};
 			r.Triggers.push(hookCloth);
 		}
@@ -244,18 +264,18 @@ function ElliesStory(Engine) {
 		{
 			struggle.Action = function () {
 				CE("The hook retracts back into the wall at any attempt at moving the gag close to it. Maybe standing in front of the (lens) again will extend it again?");
-				Engine.GotoRoom("Basement", false);
+				E.GotoLevel("Basement", false);
 			};
 			r.Triggers.push(struggle);
 		}
 		let hookCuff = new Trigger("cuff");
 		{
 			hookCuff.Action = function () {
-				DialogFocusItem = InventoryGet(Engine.C, "ItemArms");
+				DialogFocusItem = InventoryGet(E.C, "ItemArms");
 				if (DialogFocusItem.Property == null) DialogFocusItem.Property = { Restrain: null };
 				if (InventoryGet(C, "ItemArms").Property.Restrain != "Both") {
-					if (InventoryGet(Engine.C, "ItemArms").Property) {
-						DialogFocusItem = InventoryGet(Engine.C, "ItemArms");
+					if (InventoryGet(E.C, "ItemArms").Property) {
+						DialogFocusItem = InventoryGet(E.C, "ItemArms");
 						CharacterRefresh(C);
 						ChatRoomCharacterUpdate(C)
 						CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well")
@@ -288,7 +308,7 @@ function ElliesStory(Engine) {
 				InventoryWear(C, "SpreaderMetal", "ItemFeet", "Default", 20);
 				InventoryWear(C, "Corset5", "ItemTorso", InventoryGet(C, "HairFront").Color, 20)
 				ChatRoomCharacterUpdate(C);
-				Engine.GotoRoom("Stuck");
+				E.GotoLevel("Stuck");
 			};
 			r.Triggers.push(struggle);
 		}
@@ -310,7 +330,7 @@ function ElliesStory(Engine) {
 
 			setTimeout(setVibe, 500);
 
-			Engine.GotoRoom("Stuck2");
+			E.GotoLevel("Stuck2");
 		};
 
 		let acceptFate = new Trigger("relax");
@@ -336,7 +356,7 @@ function ElliesStory(Engine) {
 			ChatRoomCharacterUpdate(C)
 			setTimeout(setVibe, 500);
 
-			Engine.GotoRoom("Stuck3");
+			E.GotoLevel("Stuck3");
 		};
 
 		let acceptFate = new Trigger("relax");
@@ -384,7 +404,7 @@ function ElliesStory(Engine) {
 	{
 		let r = new Level("KeyRoom");
 
-		let goToDoomed = () => Engine.GotoRoom("Doomed");
+		let goToDoomed = () => E.GotoLevel("Doomed");
 
 		let foot = new Trigger("foot");
 		foot.Action = () =>
@@ -392,11 +412,10 @@ function ElliesStory(Engine) {
 
 		let moveToButton = new Trigger("move to button");
 		{
-			moveToButton.Regex = /((?:move|walk|crawl)[s]? to button)\s+([0-9]+)/i;
+			moveToButton.Regex = /(?:(?:move|walk|crawl)[s]? to button)\s+([0-9]+)/i;
 			moveToButton.Action = txt => {
-				let matches = txt.match(moveToButton.Regex);
-				let b = parseInt(matches[1]);				
-				S.Flags.atButton = b;
+				let b = parseInt(txt.match(moveToButton.Regex)[0]);
+				flags.AtButton = b;
 				CE("Now at the button " + b + ", you can press it(press button " + b + "), or move to a different button (move to button <n>)");
 			}
 		}
@@ -405,7 +424,7 @@ function ElliesStory(Engine) {
 		{
 			button.Regex = /(press(?:es)? button)/i;
 			button.Action = txt => {
-				if (!S.Flags.atButton) {
+				if (!flags.AtButton) {
 					//Not close to a button
 					return;
 				}
@@ -415,10 +434,10 @@ function ElliesStory(Engine) {
 					return;
 				}
 				
-				if (S.Flags.atButton == S.Flags.rightButton) {
+				if (flags.AtButton == flags.CorrectButton) {
 					CE("As you press the button you hear a light 'click' and the door opens behind you leaving the exit free");
-					Engine.UnlockRoom();
-					Engine.GotoRoom("EscapeChance");
+					E.UnlockRoom();
+					E.GotoLevel("EscapeChance");
 				} else {
 					CE("The button doesn't do anything, it simply sets the intensity of your vibrator");
 					setVibe();
@@ -426,7 +445,7 @@ function ElliesStory(Engine) {
 			};
 		}
 
-		let standsUp = new Trigger("stand up");
+		let standsUp = new Trigger("standup");
 		standsUp.Action = function () {
 			CE("The chastity belt sends a sharp, electric jolt through your body as you stand up");
 			CE("Standing up makes it easy to move around. You simply need to kneel down again, to press the button you want (press button <n>)");
@@ -448,11 +467,11 @@ function ElliesStory(Engine) {
 			level.Triggers.push(cum);
 
 			var d;
-			if (!S.Flags.EntryRead) {
+			if (!flags.IsEntryRead) {
 				d = "Several small panels open on the floor, accross the room and tiny stands, with numbered buttons between 0 and 20, extend. The buttons are all the way down on the floor, so either you can try pressing one with your foot(press button <number> with foot), or you will have to kneel to reach them (press button <number>) (without <>)";
-				S.Flags.EntryRead = true;
+				flags.IsEntryRead = true;
 			} else {
-				d = "now at button " + S.Flags.atButton + ", you can try to press it(press button) or crawl to another button(crawl to button <n>)"
+				d = "now at button " + flags.AtButton + ", you can try to press it(press button) or crawl to another button(crawl to button <n>)"
 			}
 
 			level.Entry = d;
@@ -469,15 +488,15 @@ function ElliesStory(Engine) {
 		{
 			esc.Action = function () {
 				ChatRoomAdminChatAction("Kick", "/Kick " + C.MemberNumber.toString())
-				Engine.Reset()
+				E.Reset()
 			}
 			r.Triggers.push(esc)
 		}
-		let stay = new Trigger("stay")
+		let stay = new Trigger("stay");
 		{
 			stay.Action = function () {
 				CE("After a short while the doors close again")
-				Engine.GotoRoom("Doomed")
+				E.GotoLevel("Doomed")
 			}
 			r.Triggers.push(stay)
 		}
@@ -541,11 +560,11 @@ function ElliesStory(Engine) {
 	}
 
 	function goToKeyRoom() {
-		Engine.GotoRoom("KeyRoom");
+		E.GotoLevel("KeyRoom");
 	}
 	function arrival() {
 		CE("Finally you arrive at the control room to meet your captor, and you can see the redheaded woman watching you with a calm smile. The room has a good overlook to the warehouse, and several screens to keep track of anyone that might enter")
-		Engine.Reset();
+		E.Reset();
 	}
 
 	function setVibe() {
