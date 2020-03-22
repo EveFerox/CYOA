@@ -22,8 +22,10 @@ function ElliesStory() {
 	/**@type {Flags} */
 	let flags;
 
-	let E = S.Engine;
+	/**@type {Engine} */
+	let E = null;
 
+	/**Current Player */
 	let C = null;
 
 	S.StartAction = () => {
@@ -33,6 +35,7 @@ function ElliesStory() {
 		setTimeout(Explanation, 7000);
 		setTimeout(Explanation2, 15000);
 
+		E = S.Engine;
 		C = E.C;
 
 		S.Flags = flags = new Flags();

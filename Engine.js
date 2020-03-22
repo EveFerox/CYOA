@@ -109,6 +109,8 @@ class Story {
 /**The CYOA Engine */
 class Engine {
 
+    static get Version() { return 0.2; }
+
     /**The single instance of the CYOA engine.
      * @returns {Engine}
      */
@@ -166,6 +168,7 @@ class Engine {
 
         this.Reset();
         this.C = Player;
+        this.#S.Engine = this;
         this.#S.StartAction();
         this.GotoLevel(this.#S.EntryLevel.Name);
 
@@ -174,12 +177,6 @@ class Engine {
 
         this.#boundRoomSync = (data => this.#OnRoomSync(data)).bind(this);
         ServerSocket.on("ChatRoomSync", this.#boundRoomSync);  
-    }
-
-    /**Starts story from function
-     * @param {(function)} storyFunc */
-    StartStoryFunc(storyFunc) {
-        this.Start(storyFunc(this));
     }
 
     /**Stops the current story */

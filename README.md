@@ -11,7 +11,7 @@ Choose your own adventure for Bondage Club
 4. Host room and click on the extensions button to start
 
 ## TODO
-- Better Story.Flags
-- Move room admin actions to Utils
+- Utils - room admin actions
 - Utils - vibes settings
+- Utils proper permission check
 - Create story auto test tool

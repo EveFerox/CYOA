@@ -1,4 +1,28 @@
 
+// Listen for messages from the content.
+chrome.runtime.onMessage.addListener((msg, sender, response) => {
+    if (msg.from !== 'content') return;
+
+    if (msg.subject === 'init') {
+        console.log("content script was init!");
+    }
+});
+
+document.getElementById("headerVersion").innerText = `CYOA Engine v${Engine.Version}`;
+
+function SetIsInCorrectTab(isInCorrectTab) {
+    document.getElementById("divActive").hidden = isInCorrectTab === false;
+    document.getElementById("divNotActive").hidden = isInCorrectTab === true;
+}
+
+SetIsInCorrectTab(null);
+
+chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    
+    let isInCorrectTab = String(tabs[0].url).indexOf("bondageprojects") > 0;
+    SetIsInCorrectTab(isInCorrectTab);
+});
+
 /**Injects a function as plain code */
 function InjectCode(tabId, func, callback) {
     var code = JSON.stringify(func.toString());

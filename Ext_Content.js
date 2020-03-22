@@ -1,4 +1,16 @@
 
+// Listen for messages from the popup.
+chrome.runtime.onMessage.addListener((msg, sender, response) => {
+    if (msg.from !== 'popup') return;
+    
+
+});
+
+chrome.runtime.sendMessage({
+    from: 'content',
+    subject: 'init',
+});
+
 window.addEventListener("load", e => {
 
     function AddScript(scriptFileName) {
