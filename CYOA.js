@@ -293,10 +293,9 @@ function ElliesStory() {
 			r.Triggers.push(hookCuff);
 		}
 
-			r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it (hook gag), (hook cuffs) or (hook clothes)";
+		r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it (hook gag), (hook cuffs) or (hook clothes)";
 
-			S.Levels.push(r);
-		}
+		S.Levels.push(r);
 	}
 
 	//Room2
