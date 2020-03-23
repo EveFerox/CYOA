@@ -46,7 +46,7 @@ function ElliesStory() {
 		let r = S.EntryLevel = new Level("Entrance");
 
 		//Triggers
-		let goDown = new Trigger("go down");
+		let goDown = new Trigger("down");
 		goDown.Action = () => E.GotoLevel("Basement");
 		r.Triggers.push(goDown);
 
@@ -64,7 +64,7 @@ function ElliesStory() {
 		}
 
 		r.Entry = "The dim lights of closed and covered windows lights the room as you return your attention to the main hall. " +
-			"You can check the " + checkLocker.Print() + " again or " + goDown.Print() + " to the basement";
+			"You can check the " + checkLocker.Print() + " again or (goes down) to the basement";
 
 		S.Levels.push(r);
 	}
@@ -113,7 +113,7 @@ function ElliesStory() {
 
 			if (!flags.IsTookCuffs) {
 				d += " a set of leather cuffs";
-				if (flags.IsTookGag) d += " You could try them on. (try on the cuffs)"
+				if (flags.IsTookGag) d += " You could try them on. (tries on the cuffs)"
 				isContainsAny = true;
 				level.Triggers.push(tryCuffs);
 			}
@@ -122,8 +122,8 @@ function ElliesStory() {
 				if (isContainsAny)
 					d += " and";
 				d += " a ball gag."
-				if (!flags.IsTookCuffs) { d += " You could try them on. (try on the cuffs) or (try on the gag)" }
-				else { d += " You could try it on. (try on the gag)" }
+				if (!flags.IsTookCuffs) { d += " You could try them on. (tries on the cuffs) or (tries on the gag)" }
+				else { d += " You could try it on. (tries on the gag)" }
 				isContainsAny = true;
 				level.Triggers.push(tryGag);
 			}
@@ -134,7 +134,7 @@ function ElliesStory() {
 
 			level.Triggers.push(goBack);
 
-			level.Entry = d + ". You could of course also go back (go back)";
+			level.Entry = d + ". You could of course also go back (goes back)";
 		};
 
 		S.Levels.push(r);
@@ -161,7 +161,7 @@ function ElliesStory() {
 
 							CE("The door opens");
 
-							r.Entry = "With the door open you can now either (go through the door) or (go back) upstairs";
+							r.Entry = "With the door open you can now either go (through) the door or go (back) upstairs";
 
 							E.GotoLevel("Basement");
 						}
@@ -204,7 +204,7 @@ function ElliesStory() {
 			}
 		};
 
-		let goThroughDoor = new Trigger("go through")
+		let goThroughDoor = new Trigger("through")
 		goThroughDoor.Action = function () {
 			E.GotoLevel("Room2");
 
@@ -223,12 +223,12 @@ function ElliesStory() {
 			ChatAdminMessage = "UpdatingRoom";
 		}
 
-		let goBack = new Trigger("go back");
+		let goBack = new Trigger("back");
 		goBack.Action = () => E.GotoLevel("Entrance");
 
 		r.Prepare = level => {
 			var d = "At the end of the basement stairs is a large metal door with the picture of a naked girl with her arms cuffed at her wrist and elbows behind her back, and a ballgag strapped tight between her lips. " +
-				"Next to the door is some kind of lens. You could try to get the " + acceptFate.Print() + " open, " + goBack.Print() + " upstairs, or stand in front of the (lens)";
+				"Next to the door is some kind of lens. You could try to get the " + acceptFate.Print() + " open, go " + goBack.Print() + " upstairs, or stand in front of the (lens)";
 
 			level.Triggers = [];
 
@@ -236,7 +236,7 @@ function ElliesStory() {
 				level.Triggers.push(lens);
 				level.Triggers.push(acceptFate);
 			} else {
-				d = "With the door open you can now either" + goThroughDoor.Print() + " the door, or " + goBack.Print() + " upstairs";
+				d = "With the door open you can now either go" + goThroughDoor.Print() + " the door, or go" + goBack.Print() + " upstairs";
 				level.Triggers.push(goThroughDoor);
 
 			}
@@ -256,7 +256,7 @@ function ElliesStory() {
 		let hookCloth = new Trigger("cloth");
 		{
 			hookCloth.Action = function () {
-				CE("The hook seems like it almost was made for this, and it even moves a bit to swiftly tear up your clothes, then retracts back into the wall. Standing in front of it might extend it once more (lens)");
+				CE("The hook seems like it almost was made for this, and it even moves a bit to swiftly tear up your clothes, then retracts back into the wall. Standing in front of the (lens) again might extend it once more");
 				CharacterNaked(C);
 				ChatRoomCharacterUpdate(C);
 				E.GotoLevel("Basement", false);
@@ -274,25 +274,29 @@ function ElliesStory() {
 		let hookCuff = new Trigger("cuff");
 		{
 			hookCuff.Action = function () {
-				DialogFocusItem = InventoryGet(E.CurrentPlayer, "ItemArms");
+				DialogFocusItem = InventoryGet(C, "ItemArms");
 				if (DialogFocusItem.Property == null) DialogFocusItem.Property = { Restrain: null };
 				if (InventoryGet(C, "ItemArms").Property.Restrain != "Both") {
-					if (InventoryGet(E.CurrentPlayer, "ItemArms").Property) {
-						DialogFocusItem = InventoryGet(E.CurrentPlayer, "ItemArms");
-						CharacterRefresh(C);
-						ChatRoomCharacterUpdate(C)
-						CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well")
-					} else {
-						CE("The cuffs slide onto the hook, but they're simply too sturdy to go anywhere. Maybe something else can trigger it (hook gag), (hook cuffs), (hook clothes)")
-					}
+					var NewPose = "Both"
+					DialogFocusItem.Property.Restrain = NewPose;
+					DialogFocusItem.Property.SetPose = [(NewPose == "Wrist") ? "BackBoxTie" : "BackElbowTouch"];
+					DialogFocusItem.Property.Effect = ["Block", "Prone"];
+					DialogFocusItem.Property.SelfUnlock = (NewPose == "Wrist");
+					if (NewPose == "Both") DialogFocusItem.Property.Difficulty = 30;
+					CharacterRefresh(C);
+					ChatRoomCharacterUpdate(C)
+					CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well (hook gag), (hook clothes)")
+				} else {
+					CE("The cuffs slide onto the hook, but they're simply too sturdy to go anywhere. Maybe something else can trigger it (hook gag) or (hook clothes)")
 				}
 			};
 			r.Triggers.push(hookCuff);
 		}
 
-		r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it (hook gag), (hook cuffs) or (hook clothes)";
+			r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it (hook gag), (hook cuffs) or (hook clothes)";
 
-		S.Levels.push(r);
+			S.Levels.push(r);
+		}
 	}
 
 	//Room2
@@ -331,7 +335,13 @@ function ElliesStory() {
 			InventoryWear(C, "OneBarPrison", "ItemDevices", "Default", 20)
 			ChatRoomCharacterUpdate(C)
 
-			setTimeout(setVibe, 500);
+			if (!InventoryGet(C, "ItemVulva").Property) InventoryGet(C, "ItemVulva").Property = { Intensity: -1 }
+			
+			InventoryGet(C, "ItemVulva").Property.Effect = ["Egged", "Vibrating"]
+			InventoryGet(C, "ItemVulva").Property.Intensity = InventoryGet(C, "ItemVulva").Property.Intensity + 4
+			ServerSend("ChatRoomChat", { Content: "Dildo" + ((1 > 0) ? "Increase" : "Decrease") + "To" + InventoryGet(C, "ItemVulva").Property.Intensity, Type: "Action", Dictionary: [{ Tag: "DestinationCharacterName", Text: C.Name, MemberNumber: C.MemberNumber }] })
+			CharacterLoadEffect(C)
+			ChatRoomCharacterUpdate(C)
 
 			E.GotoLevel("Stuck2");
 		};
@@ -357,7 +367,6 @@ function ElliesStory() {
 			InventoryRemove(C, "ItemDevices")
 			InventoryWear(C, "PolishedChastityBelt", "ItemPelvis")
 			ChatRoomCharacterUpdate(C)
-			setTimeout(setVibe, 500);
 
 			E.GotoLevel("Stuck3");
 		};
@@ -384,10 +393,11 @@ function ElliesStory() {
 			InventoryRemove(C, "ItemFeet")
 			ChatRoomCharacterUpdate(C)
 			CE("The ankle cuffs loosen and is pulled down under the floor. With the vibrator buzzing, a female voice can be heard speaking through the room.")
-			setTimeout(Welcome, 3000);
-			setTimeout(NowYouAreStuck, 6000);
-			setTimeout(AWayOut, 10000);
-			setTimeout(goToKeyRoom, 14000)
+			setTimeout(Welcome, 5000);
+			setTimeout(NowYouAreStuck, 10000);
+			setTimeout(AWayOut, 15000);
+			setTimeout(goToKeyRoom, 20000)
+			setTimeout(setVibe, 19000);
 		};
 
 		let acceptFate = new Trigger("relax");
