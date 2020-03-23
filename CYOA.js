@@ -416,6 +416,8 @@ function ElliesStory() {
 	{
 		let r = new Level("KeyRoom");
 
+		S.EntryLevel = r;
+
 		let goToDoomed = () => E.GotoLevel("Doomed");
 
 		let foot = new Trigger("foot");
@@ -424,11 +426,11 @@ function ElliesStory() {
 
 		let moveToButton = new Trigger("move to button");
 		{
-			moveToButton.Regex = /(?:(?:move|walk|crawl)[s]? to button)\s+([0-9]+)/i;
+			moveToButton.Regex = /^(?:(?:move|walk|crawl)[s]? to button)\s+([0-9]+)$/i;
 			moveToButton.Action = txt => {
-				let b = parseInt(txt.match(moveToButton.Regex)[0]);
+				let b = parseInt(txt.match(moveToButton.Regex)[1]);
 				flags.AtButton = b;
-				CE("Now at the button " + b + ", you can press it(press button " + b + "), or move to a different button (move to button <n>)");
+				CE("Now at the button " + b + ", you can press it(press button), or move to a different button (move to button <n>)");
 			}
 		}
 
@@ -436,11 +438,6 @@ function ElliesStory() {
 		{
 			button.Regex = /(press(?:es)? button)/i;
 			button.Action = txt => {
-				if (!flags.AtButton) {
-					//Not close to a button
-					return;
-				}
-
 				if (C.ActivePose == null) {
 					CE("The button can't be reached while standing.");
 					return;
@@ -469,21 +466,20 @@ function ElliesStory() {
 		cum.Regex = /(orgasm|cums|is cumming)/i;
 		cum.Action = goToDoomed;
 
-		r.Prepare = level => {
-			level.Triggers = [];
-			level.Triggers.push(foot);
-			level.Triggers.push(moveToButton);
-			level.Triggers.push(standsUp);
-			level.Triggers.push(button);
-			level.Triggers.push(orgasmResist);
-			level.Triggers.push(cum);
+		r.Triggers.push(foot);
+		r.Triggers.push(moveToButton);
+		r.Triggers.push(standsUp);
+		r.Triggers.push(button);
+		r.Triggers.push(orgasmResist);
+		r.Triggers.push(cum);
 
+		r.Prepare = level => {
 			var d;
 			if (!flags.IsEntryRead) {
 				d = "Several small panels open on the floor, accross the room and tiny stands, with numbered buttons between 0 and 20, extend. The buttons are all the way down on the floor, so either you can try pressing one with your foot(press button <number> with foot), or you will have to kneel to reach them (press button <number>) (without <>)";
 				flags.IsEntryRead = true;
 			} else {
-				d = "now at button " + flags.AtButton + ", you can try to press it(press button) or crawl to another button(crawl to button <n>)"
+				d = "Now at button " + flags.AtButton + ", you can try to press it(press button) or crawl to another button(crawl to button <n>)"
 			}
 
 			level.Entry = d;
