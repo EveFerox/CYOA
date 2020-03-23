@@ -285,14 +285,14 @@ function ElliesStory() {
 					} else {
 						CE("The cuffs slide onto the hook, but they're simply too sturdy to go anywhere. Maybe something else can trigger it (hook gag), (hook cuffs), (hook clothes)")
 					}
-				};
-				r.Triggers.push(hookCuff);
-			}
-
-			r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it (hook gag), (hook cuffs) or (hook clothes)";
-
-			S.Levels.push(r);
+				}
+			};
+			r.Triggers.push(hookCuff);
 		}
+
+		r.Entry = "The sensor moves a bit, before a panel opens and a hook extends from the wall. Maybe somthing can be hooked onto it (hook gag), (hook cuffs) or (hook clothes)";
+
+		S.Levels.push(r);
 	}
 
 	//Room2
