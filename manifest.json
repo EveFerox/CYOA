@@ -11,7 +11,7 @@
         {
             "run_at": "document_end",
             "matches": [
-                "https://www.bondageprojects.com/college/V13U/BondageClub/*",
+                "https://www.bondageprojects.com/college/*",
                 "https://www.bondageprojects.elementfx.com/*"
             ],
             "all_frames": true,
