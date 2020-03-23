@@ -36,7 +36,7 @@ function ElliesStory() {
 		setTimeout(Explanation2, 15000);
 
 		E = S.Engine;
-		C = E.C;
+		C = E.CurrentPlayer;
 
 		S.Flags = flags = new Flags();
 	};
@@ -170,7 +170,7 @@ function ElliesStory() {
 						}
 					}
 					else {
-						InventoryGet(E.C, "ItemArms").Property = { Restrain: null };
+						InventoryGet(E.CurrentPlayer, "ItemArms").Property = { Restrain: null };
 						E.GotoLevel("Hook");
 					}
 				}
@@ -274,11 +274,11 @@ function ElliesStory() {
 		let hookCuff = new Trigger("cuff");
 		{
 			hookCuff.Action = function () {
-				DialogFocusItem = InventoryGet(E.C, "ItemArms");
+				DialogFocusItem = InventoryGet(E.CurrentPlayer, "ItemArms");
 				if (DialogFocusItem.Property == null) DialogFocusItem.Property = { Restrain: null };
 				if (InventoryGet(C, "ItemArms").Property.Restrain != "Both") {
-					if (InventoryGet(E.C, "ItemArms").Property) {
-						DialogFocusItem = InventoryGet(E.C, "ItemArms");
+					if (InventoryGet(E.CurrentPlayer, "ItemArms").Property) {
+						DialogFocusItem = InventoryGet(E.CurrentPlayer, "ItemArms");
 						CharacterRefresh(C);
 						ChatRoomCharacterUpdate(C)
 						CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well")

@@ -148,7 +148,17 @@ class Engine {
     }
 
     /**Current Player */
-    C = null;
+    #player = null;
+
+    /**Returns the current player */
+    get CurrentPlayer() {
+        return this.#player;
+    }
+
+    #setCurrentPlayer = (player) => {
+        this.#player = player;
+        console.log(`[INFO] CurrentPlayer: ${this.#player.Name} (${this.#player.MemberNumber})`);
+    }
 
     #boundChatMessage;
     #boundRoomSync;
@@ -167,7 +177,7 @@ class Engine {
         console.log("=== CYOA Engine Starting ===");
 
         this.Reset();
-        this.C = Player;
+        this.#setCurrentPlayer(Player);
         this.#S.Engine = this;
         this.#S.StartAction();
         this.GotoLevel(this.#S.EntryLevel.Name);
@@ -241,7 +251,7 @@ class Engine {
     CharacterStillInRoom() {
         var resetcheck = 0
         for (var i = 0; i < ChatRoomCharacter.length; i++) {
-            if (this.C.MemberNumber == ChatRoomCharacter[i].MemberNumber)
+            if (this.CurrentPlayer.MemberNumber == ChatRoomCharacter[i].MemberNumber)
                 resetcheck = 1
         }
         if (resetcheck != 1)
@@ -268,7 +278,7 @@ class Engine {
                 ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
                 ChatAdminMessage = "UpdatingRoom";
 
-                this.C = ChatRoomCharacter[ChatRoomCharacter.length - 1];
+                this.CurrentPlayer = ChatRoomCharacter[ChatRoomCharacter.length - 1];
                 this.GotoLevel("Entrance", false);
 
                 this.#S.StartAction();
@@ -283,7 +293,7 @@ class Engine {
         }
 
         //Current player types in chat
-        if (sender == this.C && data.Type == "Chat") {
+        if (sender == this.CurrentPlayer && data.Type == "Chat") {
             //Iterate room triggers for a match
             var triggers = this.CurrentLevel.GetTriggers();
             for (var i = 0; i < triggers.length; i++) {
