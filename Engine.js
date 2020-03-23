@@ -278,7 +278,7 @@ class Engine {
                 ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
                 ChatAdminMessage = "UpdatingRoom";
 
-                this.CurrentPlayer = ChatRoomCharacter[ChatRoomCharacter.length - 1];
+                this.#setCurrentPlayer(ChatRoomCharacter[ChatRoomCharacter.length - 1]);
                 this.GotoLevel("Entrance", false);
 
                 this.#S.StartAction();

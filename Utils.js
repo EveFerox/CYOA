@@ -14,7 +14,7 @@ function CharFromID(MemberNumber) {
  * @param {number} target
  * @param {boolean} isLogToConsole
  */
-function CA(text, target, isLogToConsole = false) {
+function CA(text, target = undefined, isLogToConsole = false) {
     ServerSend("ChatRoomChat", {
         Content: "ActionRemove",
         Type: "Action",
@@ -29,7 +29,7 @@ function CA(text, target, isLogToConsole = false) {
  * @param {number} target
  * @param {boolean} isLogToConsole
  */
-function CE(text, target, isLogToConsole = false) {
+function CE(text, target = undefined, isLogToConsole = false) {
     ServerSend("ChatRoomChat", { Content: "*" + text, Type: "Emote", Target: target });
     if (isLogToConsole) console.log(text);
 }
