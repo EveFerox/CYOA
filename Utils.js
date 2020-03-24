@@ -4,9 +4,9 @@
  * @param {number} MemberNumber 
  */
 function CharFromID(MemberNumber) {
-    for (var i = 0; i < Character.length; i++)
-        if (Character[i].MemberNumber == MemberNumber)
-            return Character[i];
+    for (var i = 0; i < ChatRoomCharacter.length; i++)
+        if (ChatRoomCharacter[i].MemberNumber == MemberNumber)
+            return ChatRoomCharacter[i];
 }
 
 /**Chat Action

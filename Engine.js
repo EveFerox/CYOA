@@ -194,8 +194,7 @@ class Engine {
 
         this.#S = story;
 
-        CA("=== CYOA Engine Starting ===");
-        console.log("=== CYOA Engine Starting ===");
+        CA("=== CYOA Engine Starting ===", null, true);
 
         this.Reset();
         this.#setCurrentPlayer(Player);
@@ -212,8 +211,7 @@ class Engine {
 
     /**Stops the current story */
     Stop() {
-
-        CA("=== CYOA Engine Stopping ===");
+        CA("=== CYOA Engine Stopping ===", null, true);
         console.log("=== CYOA Engine Stopping ===");
         ServerSocket.off("ChatRoomMessage", this.#boundChatMessage);
         ServerSocket.off("ChatRoomSync", this.#boundRoomSync);  
@@ -235,7 +233,7 @@ class Engine {
         this.CurrentLevel.Prepare(this.CurrentLevel);
 
         if (printRoomDesc)
-            CE(this.CurrentLevel.Describe());
+            CA(this.CurrentLevel.Describe());
     }
 
     Reset() {
@@ -269,17 +267,6 @@ class Engine {
         ChatAdminMessage = "UpdatingRoom";
     }
 
-    CharacterStillInRoom() {
-        var resetcheck = 0
-        for (var i = 0; i < ChatRoomCharacter.length; i++) {
-            if (this.CurrentPlayer.MemberNumber == ChatRoomCharacter[i].MemberNumber)
-                resetcheck = 1
-        }
-        if (resetcheck != 1)
-            this.Reset()
-        resetcheck = 0
-    }
-
     #OnRoomMessage = (data) => {
         var sender = CharFromID(data.Sender);
         var msg = String(data.Content).toLowerCase();
@@ -307,8 +294,15 @@ class Engine {
             }
 
             // Reset room if current player disconnects
-            if (msg.startsWith("serverdisconnect") || msg.startsWith("serverLeave")) {
-                setTimeout(this.CharacterStillInRoom, 3000);
+            if (msg.startsWith("serverdisconnect") || msg.startsWith("serverleave")) {
+                setTimeout((() => {
+                    if (this.CurrentPlayer == null) this.Reset();
+                    for (var i = 0; i < ChatRoomCharacter.length; i++) {
+                        if (this.CurrentPlayer.MemberNumber == ChatRoomCharacter[i].MemberNumber)
+                            return;
+                    }
+                    this.Reset();
+                }).bind(this), 3000);
                 return;
             }
         }

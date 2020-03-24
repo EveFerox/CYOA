@@ -18,6 +18,8 @@ Choose your own adventure for Bondage Club
 - Utils proper permission check
 - Create story auto test tool
 
-
 ## Questions
-- Is the first letter of flags uppercase or lowercase now? saw both occuring.
+- Q: Is the first letter of flags uppercase or lowercase now? saw both occuring.
+    - A: theres class Flags inside the story creation function and S.Flags inside the story class itself.
+        flags is a local variable to be used in the story,
+        its a trick to have better view of all the flags and allows adding comments to them with /**...*/
