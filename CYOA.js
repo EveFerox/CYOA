@@ -17,6 +17,8 @@ function ElliesStory() {
 
 		/**@type {number} */
 		AtButton = null;
+
+		PressedButton = null
 	}
 
 	/**@type {Flags} */
@@ -429,29 +431,45 @@ function ElliesStory() {
 			moveToButton.Regex = /^(?:(?:move|walk|crawl)[s]? to button)\s+([0-9]+)$/i;
 			moveToButton.Action = txt => {
 				let b = parseInt(txt.match(moveToButton.Regex)[1]);
-				flags.AtButton = b;
+				Flags.AtButton = b;
 				CE("Now at the button " + b + ", you can press it(press button), or move to a different button (move to button <n>)");
 			}
 		}
 
 		let button = new Trigger("press button");
 		{
-			button.Regex = /(press(?:es)? button)/i;
+			button.Regex = /^(?:(?:press)(?:es|ed)? button)\s+([0-9]+)$/i;
+			
 			button.Action = txt => {
+				let c = parseInt(txt.match(button.Regex)[1]);
+				Flags.PressedButton = c;
 				if (C.ActivePose == null) {
 					CE("The button can't be reached while standing.");
-					return;
-				}
-				
-				if (flags.AtButton == flags.CorrectButton) {
-					CE("As you press the button you hear a light 'click' and the door opens behind you leaving the exit free");
-					E.UnlockRoom();
-					E.GotoLevel("EscapeChance");
 				} else {
-					CE("The button doesn't do anything, it simply sets the intensity of your vibrator");
-					setVibe();
-				}
-			};
+				if (Flags.atButton){
+					if (Flags.atButton != Flags.PressedButton) {
+						CE("That button is too far away, you can stand up to walk there, or (crawl to button <number>) to remain on your knees")
+					} else if (Flags.PressedButton == Flags.CorrectButton) {
+						CE("As you press the button you hear a light 'click' and the door opens behind you leaving the exit free")
+						UnlockRoom()
+						GotoRoom("EscapeChance")
+					}
+					else{
+						CE("The button doesn't do anything, it simply sets the intensity of your vibrator")
+						setVibe()
+						Flags.atButton = Flags.PressedButton
+					}
+				} else if (Flags.PressedButton == Flags.CorrectButton) {
+						CE("As you press the button you hear a light 'click' and the door opens behind you leaving the exit free")
+						UnlockRoom()
+						GotoRoom("EscapeChance")
+				} else {
+					CE("The button doesn't do anything, it simply sets the intensity of your vibrator")
+					setVibe()
+					Flags.atButton = Flags.PressedButton
+				} 
+			} 
+		};
 		}
 
 		let standsUp = new Trigger("standup");
