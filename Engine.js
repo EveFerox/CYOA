@@ -1,12 +1,33 @@
 // @ts-check
 
 class Trigger {
-     
+
+    /**Possible Trigger Types */
+    static Types = Object.freeze({
+        Emote: "Emote",
+        Action: "Action",
+        Chat: "Chat",
+
+        /**@type {string[]} */
+        ALl: [],
+        
+        constructor() {
+            this.ALl = [
+                this.Emote,
+                this.Action,
+                this.Chat,
+            ];
+        }
+    });
+
     /**@type {string} */
     Text = "TRIGGER TEXT";
 
     /**@type {RegExp} */
     Regex = null;
+
+    /**@type {string} */
+    Type = Trigger.Types.Emote;
 
 	/**Tests Regex or Text of this trigger
 	 * @param {string} txt Text to test
@@ -292,12 +313,16 @@ class Engine {
             }
         }
 
-        //Current player types in chat
-        if (sender == this.CurrentPlayer && data.Type == "Chat") {
+        //Current player sent a message
+        if (sender == this.CurrentPlayer) {
             //Iterate room triggers for a match
             var triggers = this.CurrentLevel.GetTriggers();
             for (var i = 0; i < triggers.length; i++) {
                 var trigger = triggers[i];
+
+                //Check trigger type
+                if (trigger.Type != data.Type) continue;
+
                 if (trigger.IsMatch(msg)) {
                     console.log("[INFO] Trigger hit: " + trigger.Text);
                     trigger.Action(msg);
