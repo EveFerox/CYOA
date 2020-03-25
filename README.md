@@ -16,7 +16,7 @@ Choose your own adventure for Bondage Club
 - Utils - vibes settings
 - Utils proper permission check
 - Create story auto test tool
-- 
+- Code clean up - put extension and other parts of code in folders 
 
 ## Errors  
 - When triggering the check to see if current player is still in the room: this.Reset is not a function

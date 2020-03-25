@@ -496,10 +496,10 @@ function ElliesStory() {
 		};
 
 		let orgasmResist = new Trigger("orgasmresist");
-		orgasmResist.Type = Trigger.Types.Action;
+		orgasmResist.Type = Trigger.Types.Activity;
 
 		let cum = new Trigger("orgasm");
-		standsUp.Type = Trigger.Types.Action;
+		cum.Type = Trigger.Types.Activity;
 		cum.Regex = /(orgasm|cum|cumming)/i;
 		cum.Action = () => E.GotoLevel("Doomed");
 

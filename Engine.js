@@ -6,6 +6,7 @@ class Trigger {
     static Types = Object.freeze({
         Emote: "Emote",
         Action: "Action",
+        Activity: "Activity",
         Chat: "Chat",
 
         /**@type {string[]} */
@@ -15,6 +16,7 @@ class Trigger {
             this.ALl = [
                 this.Emote,
                 this.Action,
+                this.Activity,
                 this.Chat,
             ];
         }
@@ -192,6 +194,11 @@ class Engine {
             this.Stop();
         }
 
+        if ((story instanceof Story) == false) {
+            console.log("[Error] Parameter is not instance of Story");
+            return;
+        }
+
         this.#S = story;
 
         CA("=== CYOA Engine Starting ===", null, true);
@@ -212,9 +219,12 @@ class Engine {
     /**Stops the current story */
     Stop() {
         CA("=== CYOA Engine Stopping ===", null, true);
-        console.log("=== CYOA Engine Stopping ===");
         ServerSocket.off("ChatRoomMessage", this.#boundChatMessage);
         ServerSocket.off("ChatRoomSync", this.#boundRoomSync);  
+    }
+
+    Restart() {
+        this.Start(this.CurrentStory);
     }
 
 	/** Finds and moves the player to the Level
