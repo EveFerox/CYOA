@@ -10,10 +10,10 @@ class Trigger {
         Chat: "Chat",
 
         /**@type {string[]} */
-        ALl: [],
+        All: [],
         
         constructor() {
-            this.ALl = [
+            this.All = [
                 this.Emote,
                 this.Action,
                 this.Activity,

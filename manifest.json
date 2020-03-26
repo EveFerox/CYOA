@@ -5,7 +5,7 @@
     "version": "0.1",
     "browser_action": {
         "default_title": "CYOA",
-        "default_popup": "Ext_Popup.html"
+        "default_popup": "ChromeExtension/Ext_Popup.html"
     },
     "content_scripts": [
         {
@@ -19,7 +19,7 @@
                 "Utils.js",
                 "Engine.js",
                 "CYOA.js",
-                "Ext_Content.js" 
+                "ChromeExtension/Ext_Content.js" 
             ]
         }
     ],
