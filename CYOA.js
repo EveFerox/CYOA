@@ -416,8 +416,6 @@ function ElliesStory() {
 	{
 		let r = new Level("KeyRoom");
 
-		S.EntryLevel = r;//TEMP
-
 		let foot = new Trigger("foot");
 		foot.Action = () =>
 			CA('As you bring your foot close to the button it retracts into the floor, and the voice echoes through the room. "Sorry, but that is cheating. You will have to kneel down to press it."');
