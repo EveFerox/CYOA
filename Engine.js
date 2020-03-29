@@ -103,7 +103,11 @@ class Story {
 
     /**Called when story is started [Optional]
      * @type {function} */
-    StartAction = () => { };
+    OnStart = () => { };
+
+    /**Called when story is being reset [Optional]
+     * @type {function} */
+    OnReset = () => { };
 
     /**@type {Engine} */
     Engine;
@@ -126,6 +130,7 @@ class Story {
     /**Resets the story to its default state */
     Reset() {
         this.Flags = {};
+        this.OnReset();
     }
 }
 
@@ -203,10 +208,9 @@ class Engine {
 
         CA("=== CYOA Engine Starting ===", null, true);
 
-        this.Reset();
         this.#setCurrentPlayer(Player);
         this.#S.Engine = this;
-        this.#S.StartAction();
+        this.#S.OnStart();
         this.GotoLevel(this.#S.EntryLevel.Name);
 
         this.#boundChatMessage = (data => this.#OnRoomMessage(data)).bind(this);
@@ -224,6 +228,7 @@ class Engine {
     }
 
     Restart() {
+        this.Reset();
         this.Start(this.CurrentStory);
     }
 
@@ -247,34 +252,27 @@ class Engine {
     }
 
     Reset() {
-        var UpdatedRoom = {
-            Name: ChatRoomData.Name,
-            Description: ChatRoomData.Description,
-            Background: "AbandonedBuilding",
-            Limit: (ChatRoomCharacter.length + 1).toString(),
-            Admin: ChatRoomData.Admin,
-            Ban: ChatRoomData.Ban,
-            Private: ChatRoomData.Private,
-            Locked: false
-        }
-        ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-        ChatAdminMessage = "UpdatingRoom";
         this.#S.Reset();
     }
 
-    UnlockRoom() {
-        var UpdatedRoom = {
-            Name: ChatRoomData.Name,
-            Description: ChatRoomData.Description,
-            Background: "AbandonedBuilding",
-            Limit: (ChatRoomCharacter.length + 1).toString(),
-            Admin: ChatRoomData.Admin,
-            Ban: ChatRoomData.Ban,
-            Private: true,
-            Locked: false
-        }
-        ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-        ChatAdminMessage = "UpdatingRoom";
+    /**Sends a "ChatRoomAdmin" message to server
+     * @param {{ Name?: string; Description?: string; Background?: string; Limit?: string; Admin?: string; Ban?: any; Private?: boolean; Locked?: boolean; }} roomSettings
+     */
+    ChangeRoomSettings(roomSettings) {
+        ServerSend("ChatRoomAdmin", {
+            MemberNumber: Player.ID,
+            Action: "Update",
+            Room: {
+                Name: roomSettings.Name || ChatRoomData.Name,
+                Description: roomSettings.Description || ChatRoomData.Description,
+                Background: roomSettings.Background || ChatRoomData.Background,
+                Limit: roomSettings.Limit || ChatRoomData.Limit,
+                Admin: roomSettings.Admin || ChatRoomData.Admin,
+                Ban: roomSettings.Ban || ChatRoomData.Ban,
+                Private: roomSettings.Private || ChatRoomData.Private,
+                Locked: roomSettings.Locked || ChatRoomData.Locked
+            }
+        });
     }
 
     #OnRoomMessage = (data) => {
@@ -299,7 +297,7 @@ class Engine {
                 this.#setCurrentPlayer(ChatRoomCharacter[ChatRoomCharacter.length - 1]);
                 this.GotoLevel("Entrance", false);
 
-                this.#S.StartAction();
+                this.#S.OnStart();
                 return;
             }
 

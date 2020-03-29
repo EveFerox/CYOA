@@ -28,7 +28,7 @@ function ElliesStory() {
 	/**Current Player */
 	let C = null;
 
-	S.StartAction = () => {
+	S.OnStart = () => {
 		CA("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock. Before you is the wide interior of what appears to be an abbandoned warehouse");
 
 		setTimeout(FollowUp, 3000);
@@ -39,6 +39,15 @@ function ElliesStory() {
 		C = E.CurrentPlayer;
 
 		S.Flags = flags = new Flags();
+	};
+
+	S.OnReset = () => {
+		E.ChangeRoomSettings(
+			{
+				Background: "AbandonedBuilding",
+				Limit: (ChatRoomCharacter.length + 1).toString(),
+				Locked: false
+			});
 	};
 
 	//Entrance
@@ -207,20 +216,7 @@ function ElliesStory() {
 		let goThroughDoor = new Trigger("through")
 		goThroughDoor.Action = function () {
 			E.GotoLevel("Room2");
-
-			//Change background
-			var UpdatedRoom = {
-				Name: ChatRoomData.Name,
-				Description: ChatRoomData.Description,
-				Background: "VaultCorridor",
-				Limit: ChatRoomData.Limit,
-				Admin: ChatRoomData.Admin,
-				Ban: ChatRoomData.Ban,
-				Private: ChatRoomData.Private,
-				Locked: true
-			}
-			ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-			ChatAdminMessage = "UpdatingRoom";
+			E.ChangeRoomSettings({ Background: "VaultCorridor" });
 		}
 
 		let goBack = new Trigger("back");
@@ -435,7 +431,7 @@ function ElliesStory() {
 			if (flags.AtButton == flags.CorrectButton) {
 				//Correct button
 				CA("As you press the button you hear a light 'click' and the door opens behind you leaving the exit free.");
-				E.UnlockRoom();
+				UnlockRoom();
 				E.GotoLevel("EscapeChance");
 			} else {
 				//Wrong button
@@ -609,6 +605,16 @@ function ElliesStory() {
 	function arrival() {
 		CA("Finally you arrive at the control room to meet your captor, and you can see the redheaded woman watching you with a calm smile. The room has a good overlook to the warehouse, and several screens to keep track of anyone that might enter")
 		E.Reset();
+	}
+
+	function UnlockRoom() {
+		this.ChangeRoomSettings(
+			{
+				Background: "AbandonedBuilding",
+				Limit: (ChatRoomCharacter.length + 1).toString(),
+				Private: true,
+				Locked: false
+			});
 	}
 
 	function setVibe() {
