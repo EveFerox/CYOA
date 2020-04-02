@@ -608,7 +608,7 @@ function ElliesStory() {
 	}
 
 	function UnlockRoom() {
-		this.ChangeRoomSettings(
+		E.ChangeRoomSettings(
 			{
 				Background: "AbandonedBuilding",
 				Limit: (ChatRoomCharacter.length + 1).toString(),
