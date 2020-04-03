@@ -109,6 +109,18 @@ class Story {
      * @type {function} */
     OnReset = () => { };
 
+    /**Called when character enters ChatRoom [Optional]
+     * @type {function}
+     * @param {object} char
+     */
+    OnCharEnter = char => { };
+
+    /**Called when character leaves ChatRoom [Optional]
+     * @type {function} 
+     * @param {object} char
+     */
+    OnCharExit = char => { };
+
     /**@type {Engine} */
     Engine;
 
@@ -183,7 +195,7 @@ class Engine {
         return this.#player;
     }
 
-    #setCurrentPlayer = (player) => {
+    set CurrentPlayer(player) {
         this.#player = player;
         console.log(`[INFO] CurrentPlayer: ${this.#player.Name} (${this.#player.MemberNumber})`);
     }
@@ -208,7 +220,7 @@ class Engine {
 
         CA("=== CYOA Engine Starting ===", null, true);
 
-        this.#setCurrentPlayer(Player);
+        this.CurrentPlayer = Player;
         this.#S.Engine = this;
         this.#S.OnStart();
         this.GotoLevel(this.#S.EntryLevel.Name);
@@ -281,36 +293,14 @@ class Engine {
 
         if (data.Type == "Action") {
             if (msg.startsWith("serverenter")) {
-                var UpdatedRoom = {
-                    Name: ChatRoomData.Name,
-                    Description: ChatRoomData.Description,
-                    Background: "AbandonedBuilding",
-                    Limit: "2",
-                    Admin: ChatRoomData.Admin,
-                    Ban: ChatRoomData.Ban,
-                    Private: ChatRoomData.Private,
-                    Locked: true
-                }
-                ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
-                ChatAdminMessage = "UpdatingRoom";
-
-                this.#setCurrentPlayer(ChatRoomCharacter[ChatRoomCharacter.length - 1]);
-                this.GotoLevel("Entrance", false);
-
-                this.#S.OnStart();
+                // Character entered
+                this.CurrentStory.OnCharEnter(sender);
                 return;
             }
 
-            // Reset room if current player disconnects
             if (msg.startsWith("serverdisconnect") || msg.startsWith("serverleave")) {
-                setTimeout((() => {
-                    if (this.CurrentPlayer == null) this.Reset();
-                    for (var i = 0; i < ChatRoomCharacter.length; i++) {
-                        if (this.CurrentPlayer.MemberNumber == ChatRoomCharacter[i].MemberNumber)
-                            return;
-                    }
-                    this.Reset();
-                }).bind(this), 3000);
+                // Character left
+                this.CurrentStory.OnCharExit(sender);
                 return;
             }
         }

@@ -50,6 +50,28 @@ function ElliesStory() {
 			});
 	};
 
+	S.OnCharEnter = char => {
+		E.ChangeRoomSettings({
+			Background: "AbandonedBuilding",
+			Limit: "2",
+			Locked: true
+		});
+
+		E.CurrentPlayer = (ChatRoomCharacter[ChatRoomCharacter.length - 1]);
+		E.GotoLevel("Entrance", false);
+	};
+
+	S.OnCharExit = char => { 
+		setTimeout((() => {
+			if (E.CurrentPlayer == null) E.Reset();
+			for (var i = 0; i < ChatRoomCharacter.length; i++) {
+				if (E.CurrentPlayer.MemberNumber == ChatRoomCharacter[i].MemberNumber)
+					return;
+			}
+			E.Reset();
+		}).bind(this), 3000);
+	};
+
 	//Entrance
 	{
 		let r = S.EntryLevel = new Level("Entrance");
