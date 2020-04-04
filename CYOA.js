@@ -29,52 +29,58 @@ function ElliesStory() {
 	let C = null;
 
 	S.OnStart = () => {
+
+		E = S.Engine;
+		C = E.Players[0];
+
+		S.Flags = flags = new Flags();
+	};
+
+	S.OnReset = () => {
 		CA("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock. Before you is the wide interior of what appears to be an abbandoned warehouse");
 
 		setTimeout(FollowUp, 3000);
 		setTimeout(Explanation, 7000);
 		setTimeout(Explanation2, 15000);
 
-		E = S.Engine;
-		C = E.CurrentPlayer;
-
-		S.Flags = flags = new Flags();
+		E.GotoLevel("Entrance");
 	};
 
-	S.OnReset = () => {
+	S.OnCharEnter = char => {
+		// Add the entering player
+		E.Players.slice(0);
+		E.Players.push(ChatRoomCharacter[ChatRoomCharacter.length - 1]);
+		C = E.Players[0];
+
+		E.Reset();
+
 		E.ChangeRoomSettings(
 			{
 				Background: "AbandonedBuilding",
 				Limit: (ChatRoomCharacter.length + 1).toString(),
-				Locked: false
+				Locked: true,
+				Private: false
 			});
 	};
 
-	S.OnCharEnter = char => {
-		E.ChangeRoomSettings({
-			Background: "AbandonedBuilding",
-			Limit: "2",
-			Locked: true
-		});
-
-		E.CurrentPlayer = (ChatRoomCharacter[ChatRoomCharacter.length - 1]);
-		E.GotoLevel("Entrance", false);
-	};
-
 	S.OnCharExit = char => { 
-		setTimeout((() => {
-			if (E.CurrentPlayer == null) E.Reset();
-			for (var i = 0; i < ChatRoomCharacter.length; i++) {
-				if (E.CurrentPlayer.MemberNumber == ChatRoomCharacter[i].MemberNumber)
-					return;
-			}
+		if (ArrayRemove(E.Players, char)) {
+			// Remove player if leaves and reset
 			E.Reset();
-		}).bind(this), 3000);
+
+			E.ChangeRoomSettings(
+				{
+					Background: "AbandonedBuilding",
+					Limit: (ChatRoomCharacter.length + 1).toString(),
+					Locked: false,
+					Private: false
+				});
+		}
 	};
 
 	//Entrance
 	{
-		let r = S.EntryLevel = new Level("Entrance");
+		let r = new Level("Entrance");
 
 		//Triggers
 		let goDown = new Trigger("down");
@@ -201,7 +207,7 @@ function ElliesStory() {
 						}
 					}
 					else {
-						InventoryGet(E.CurrentPlayer, "ItemArms").Property = { Restrain: null };
+						InventoryGet(C, "ItemArms").Property = { Restrain: null };
 						E.GotoLevel("Hook");
 					}
 				}
@@ -630,6 +636,7 @@ function ElliesStory() {
 	}
 
 	function UnlockRoom() {
+		// Allow player to exit but keep the room private until then
 		E.ChangeRoomSettings(
 			{
 				Background: "AbandonedBuilding",

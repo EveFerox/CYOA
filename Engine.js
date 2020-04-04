@@ -46,8 +46,9 @@ class Trigger {
 
 	/**Function for this triggers logic
      * @param {string} txt
+     * @param {object} C player
      */
-    Action = txt => { };
+    Action = (txt, C) => { };
 
 	/**
 	 * @param {string} Text
@@ -93,9 +94,6 @@ class Story {
     /**All levels in the story
      * @type {Level[]} */
     Levels = [];
-
-    /**@type {Level} */
-    EntryLevel = null;
 
 	/**All story persistent flags
 	 * @type {object} */
@@ -149,7 +147,7 @@ class Story {
 /**The CYOA Engine */
 class Engine {
 
-    static get Version() { return 0.2; }
+    static get Version() { return 0.3; }
 
     /**The single instance of the CYOA engine.
      * @returns {Engine}
@@ -164,19 +162,18 @@ class Engine {
     // @ts-ignore
     static #instance;
 
-    /**@type {Story} The current story loaded */
+    /**@type {Story} */
     #S = null;
 
-    /**@returns {Story} */
+    /**@returns {Story} The current Story loaded*/
     get CurrentStory() {
         return this.#S;
     }
 
-    /**Current Level
-     * @type {Level} */
+    /**@type {Level} */
     #level = null;
 
-    /**@returns {Level} */
+    /**@returns {Level} The current Level*/
     get CurrentLevel() {
         return this.#level;
     }
@@ -187,17 +184,21 @@ class Engine {
         console.log(`[INFO] CurrentLevel: ${this.#level.Name}`);
     }
 
-    /**Current Player */
-    #player = null;
+    /**Playing characters
+     * @type {object[]}
+     */
+    #players = [];
 
-    /**Returns the current player */
-    get CurrentPlayer() {
-        return this.#player;
+    get Players() {
+        return this.#players;
     }
 
-    set CurrentPlayer(player) {
-        this.#player = player;
-        console.log(`[INFO] CurrentPlayer: ${this.#player.Name} (${this.#player.MemberNumber})`);
+    /**Checks if a character is playing the Story
+     * @param {object} char 
+     * @returns {boolean}
+     */
+    IsCharPlaying(char) {
+        return this.Players.indexOf(char) >= 0;
     }
 
     #boundChatMessage;
@@ -207,7 +208,7 @@ class Engine {
      * @param {(Story)} story 
      */
     Start(story) {
-        if (this.#S != null) {
+        if (this.CurrentStory != null) {
             this.Stop();
         }
 
@@ -220,10 +221,11 @@ class Engine {
 
         CA("=== CYOA Engine Starting ===", null, true);
 
-        this.CurrentPlayer = Player;
-        this.#S.Engine = this;
-        this.#S.OnStart();
-        this.GotoLevel(this.#S.EntryLevel.Name);
+        this.CurrentStory.Engine = this;
+        this.CurrentStory.OnStart();
+
+        // Simulate Player as playing char by default
+        this.CurrentStory.OnCharEnter(Player);
 
         this.#boundChatMessage = (data => this.#OnRoomMessage(data)).bind(this);
         ServerSocket.on("ChatRoomMessage", this.#boundChatMessage);
@@ -249,7 +251,7 @@ class Engine {
 	 * @param {boolean} printRoomDesc
 	 */
     GotoLevel(levelName, printRoomDesc = true) {
-        var found = this.#S.GetLevel(levelName);
+        var found = this.CurrentStory.GetLevel(levelName);
         if (found == null) {
             console.log("[ERROR] Room " + levelName + " not found!");
             return;
@@ -264,7 +266,7 @@ class Engine {
     }
 
     Reset() {
-        this.#S.Reset();
+        this.CurrentStory.Reset();
     }
 
     /**Sends a "ChatRoomAdmin" message to server
@@ -306,7 +308,7 @@ class Engine {
         }
 
         //Current player sent a message
-        if (sender == this.CurrentPlayer) {
+        if (this.IsCharPlaying(sender)) {
             //Iterate room triggers for a match
             var triggers = this.CurrentLevel.GetTriggers();
             for (var i = 0; i < triggers.length; i++) {
@@ -317,7 +319,7 @@ class Engine {
 
                 if (trigger.IsMatch(msg)) {
                     console.log("[INFO] Trigger hit: " + trigger.Text);
-                    trigger.Action(msg);
+                    trigger.Action(msg, sender);
                     return;
                 }
             }
