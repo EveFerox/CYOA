@@ -29,7 +29,6 @@ function ElliesStory() {
 	let C = null;
 
 	S.OnStart = () => {
-
 		E = S.Engine;
 		C = E.Players[0];
 
@@ -37,8 +36,6 @@ function ElliesStory() {
 	};
 
 	S.OnReset = () => {
-		
-
 		S.Flags = flags = new Flags();
 		E.ChangeRoomSettings(
 			{
@@ -50,15 +47,13 @@ function ElliesStory() {
 	};
 
 	S.OnCharEnter = char => {
-		// Add the entering player
-		C = ChatRoomCharacter[ChatRoomCharacter.length - 1];
-
 		CE("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock. Before you is the wide interior of what appears to be an abbandoned warehouse");
+		// Remove all players
 		E.Players.slice(0);
-		E.Players.push(ChatRoomCharacter[ChatRoomCharacter.length - 1]);
+		// Add the entering player
+		E.Players.push(char);
+		C = char;
 		E.GotoLevel("Entrance", false);
-
-		
 
 		setTimeout(FollowUp, 3000);
 		setTimeout(Explanation, 7000);
