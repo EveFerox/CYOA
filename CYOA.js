@@ -44,6 +44,7 @@ function ElliesStory() {
 		setTimeout(Explanation2, 15000);
 
 		E.GotoLevel("Entrance");
+		C = ChatRoomCharacter[ChatRoomCharacter.length - 1]
 	};
 
 	S.OnCharEnter = char => {
