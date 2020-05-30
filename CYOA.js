@@ -37,23 +37,32 @@ function ElliesStory() {
 	};
 
 	S.OnReset = () => {
-		CA("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock. Before you is the wide interior of what appears to be an abbandoned warehouse");
+		
 
-		setTimeout(FollowUp, 3000);
-		setTimeout(Explanation, 7000);
-		setTimeout(Explanation2, 15000);
-
-		E.GotoLevel("Entrance");
-		C = ChatRoomCharacter[ChatRoomCharacter.length - 1]
+		S.Flags = flags = new Flags();
+		E.ChangeRoomSettings(
+			{
+				Background: "AbandonedBuilding",
+				Limit: (ChatRoomCharacter.length + 1).toString(),
+				Locked: false,
+				Private: false
+			});
 	};
 
 	S.OnCharEnter = char => {
 		// Add the entering player
+		C = ChatRoomCharacter[ChatRoomCharacter.length - 1];
+
+		CE("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock. Before you is the wide interior of what appears to be an abbandoned warehouse");
 		E.Players.slice(0);
 		E.Players.push(ChatRoomCharacter[ChatRoomCharacter.length - 1]);
-		C = E.Players[0];
+		E.GotoLevel("Entrance", false);
 
-		E.Reset();
+		
+
+		setTimeout(FollowUp, 3000);
+		setTimeout(Explanation, 7000);
+		setTimeout(Explanation2, 15000);
 
 		E.ChangeRoomSettings(
 			{
@@ -67,7 +76,6 @@ function ElliesStory() {
 	S.OnCharExit = char => { 
 		if (ArrayRemove(E.Players, char)) {
 			// Remove player if leaves and reset
-			E.Reset();
 
 			E.ChangeRoomSettings(
 				{
@@ -95,7 +103,7 @@ function ElliesStory() {
 		{
 			let t = new Trigger("window");
 			t.Action = function () {
-				CA("You find a window, and it slides open at first try. Apparently someone was a bit careless with the security");
+				CE("You find a window, and it slides open at first try. Apparently someone was a bit careless with the security");
 			};
 
 			r.Triggers.push(t);
@@ -121,7 +129,7 @@ function ElliesStory() {
 			} else {
 				InventoryWear(C, "LeatherCuffs", "ItemArms", "Default", 40);
 				ChatRoomCharacterUpdate(C);
-				CA("The cuffs slide on nicely. There doesn't seem to be anything overly unusual about them");
+				CE("The cuffs slide on nicely. There doesn't seem to be anything overly unusual about them");
 				setTimeout(lock, 8000);
 
 				flags.IsTookCuffs = true;
@@ -138,7 +146,7 @@ function ElliesStory() {
 				InventoryWear(C, "BallGag", "ItemMouth", "Default", 45);
 				InventoryLock(C, InventoryGet(C, "ItemMouth"), "ExclusivePadlock", 2313);
 				ChatRoomCharacterUpdate(C)
-				CA("The gag fits snugly between your lips to keep them appart. And a light mechanical sound and a 'click' sounds as the straps pull a bit together and a mechanism on the buckle locks it tightly in place");
+				CE("The gag fits snugly between your lips to keep them appart. And a light mechanical sound and a 'click' sounds as the straps pull a bit together and a mechanism on the buckle locks it tightly in place");
 
 				flags.IsTookGag = true;
 			}
@@ -189,7 +197,7 @@ function ElliesStory() {
 
 		//Triggers
 		let acceptFate = new Trigger("door");
-		acceptFate.Action = () => CA("The door is simply too solid, and any attempt at prying it open seems meaningless");
+		acceptFate.Action = () => CE("The door is simply too solid, and any attempt at prying it open seems meaningless");
 
 		let lens = new Trigger("lens");
 		lens.Action = function () {
@@ -202,7 +210,7 @@ function ElliesStory() {
 
 							flags.IsDoorOpen = true;
 
-							CA("The door opens");
+							CE("The door opens");
 
 							r.Entry = "With the door open you can now either go (through) the door or go (back) upstairs";
 
@@ -218,11 +226,11 @@ function ElliesStory() {
 					}
 				}
 				else {
-					CA("The sensor moves a bit, but nothing seems to happen")
+					CE("The sensor moves a bit, but nothing seems to happen")
 				}
 			}
 			else {
-				CA("The sensor moves a bit, but nothing seems to happen")
+				CE("The sensor moves a bit, but nothing seems to happen")
 			}
 			for (var i = 0; i < ChatRoomCharacter.length; i++) {
 				var X = ChatRoomCharacter[i]
@@ -289,7 +297,7 @@ function ElliesStory() {
 		let hookCloth = new Trigger("cloth");
 		{
 			hookCloth.Action = function () {
-				CA("The hook seems like it almost was made for this, and it even moves a bit to swiftly tear up your clothes, then retracts back into the wall. Standing in front of the (lens) again might extend it once more");
+				CE("The hook seems like it almost was made for this, and it even moves a bit to swiftly tear up your clothes, then retracts back into the wall. Standing in front of the (lens) again might extend it once more");
 				CharacterNaked(C);
 				ChatRoomCharacterUpdate(C);
 				E.GotoLevel("Basement", false);
@@ -299,7 +307,7 @@ function ElliesStory() {
 		let struggle = new Trigger("gag");
 		{
 			struggle.Action = function () {
-				CA("The hook retracts back into the wall at any attempt at moving the gag close to it. Maybe standing in front of the (lens) again will extend it again?");
+				CE("The hook retracts back into the wall at any attempt at moving the gag close to it. Maybe standing in front of the (lens) again will extend it again?");
 				E.GotoLevel("Basement", false);
 			};
 			r.Triggers.push(struggle);
@@ -318,9 +326,9 @@ function ElliesStory() {
 					if (NewPose == "Both") DialogFocusItem.Property.Difficulty = 45;
 					CharacterRefresh(C);
 					ChatRoomCharacterUpdate(C)
-					CA("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well (hook gag), (hook clothes)")
+					CE("The hook moves and swiftly makes sure your cuffs are connected both at Wrists and Elbows. Maybe it will trigger again if you move something else close to it as well (hook gag), (hook clothes)")
 				} else {
-					CA("The cuffs slide onto the hook, but they're simply too sturdy to go anywhere. Maybe something else can trigger it (gag) or (clothes)")
+					CE("The cuffs slide onto the hook, but they're simply too sturdy to go anywhere. Maybe something else can trigger it (gag) or (clothes)")
 				}
 			};
 			r.Triggers.push(hookCuff);
@@ -338,7 +346,7 @@ function ElliesStory() {
 		//Triggers
 		let acceptFate = new Trigger("door");
 		{
-			acceptFate.Action = () => CA("The door seems to have locked behind you leaving no way back at the current moment.");
+			acceptFate.Action = () => CE("The door seems to have locked behind you leaving no way back at the current moment.");
 			r.Triggers.push(acceptFate);
 		}
 		let struggle = new Trigger("platform");
@@ -424,7 +432,7 @@ function ElliesStory() {
 			InventoryWear(C, "HarnessPanelGag", "ItemMouth2", "Default", 20)
 			InventoryRemove(C, "ItemFeet")
 			ChatRoomCharacterUpdate(C)
-			CA("The ankle cuffs loosen and is pulled down under the floor. With the vibrator buzzing, a female voice can be heard speaking through the room.")
+			CE("The ankle cuffs loosen and is pulled down under the floor. With the vibrator buzzing, a female voice can be heard speaking through the room.")
 			setTimeout(Welcome, 5000);
 			setTimeout(NowYouAreStuck, 10000);
 			setTimeout(AWayOut, 15000);
@@ -451,7 +459,7 @@ function ElliesStory() {
 
 		let foot = new Trigger("foot");
 		foot.Action = () =>
-			CA('As you bring your foot close to the button it retracts into the floor, and the voice echoes through the room. "Sorry, but that is cheating. You will have to kneel down to press it."');
+			CE('As you bring your foot close to the button it retracts into the floor, and the voice echoes through the room. "Sorry, but that is cheating. You will have to kneel down to press it."');
 
 		let moveToButton = new Trigger("crawl to button");
 		{
@@ -459,7 +467,7 @@ function ElliesStory() {
 			moveToButton.Action = txt => {
 				let b = parseInt(txt.match(moveToButton.Regex)[1]);
 				flags.AtButton = b;
-				CA("Now at button " + b + ", you can press it(press button), or crawl to a different button (crawl to button <n>)");
+				CE("Now at button " + b + ", you can press it(press button " + b + "), or crawl to a different button (crawl to button <n>)");
 			}
 		}
 
@@ -468,7 +476,7 @@ function ElliesStory() {
 			var rng = Math.round(Math.random() * 5)
 			if (flags.AtButton == flags.CorrectButton) {
 				//Correct button
-				CA("As you press the button you hear a light 'click' and the door opens behind you leaving the exit free.");
+				CE("As you press the button you hear a light 'click' and the door opens behind you leaving the exit free.");
 				UnlockRoom();
 				E.GotoLevel("EscapeChance");
 			} else if (rng ==3 ) {
@@ -477,7 +485,7 @@ function ElliesStory() {
 				CE("More mechanical arms extend from the floor, swiftly snaring together your legs to make movement harder. To proceed you will have to struggle out")
 			} else if (rng ==4 && C.BlockItems.map(function(e) { return e.Name; }).indexOf('VibratingDildo') >= 0) {
 				if (InventoryGet(C, "ItemButt").Asset.Name != "VibratingButtplug") {
-					CA("A panel opens on the floor, just behind you, extending an arm to shove a butt plug through an opening on your castity belt, then swiftly closes it")
+					CE("A panel opens on the floor, just behind you, extending an arm to shove a butt plug through an opening on your castity belt, then swiftly closes it")
 					InventoryWear(C, "VibratingButtplug", "ItemButt")
 					ChatRoomCharacterUpdate(C)
 					if (!InventoryGet(C, "ItemButt").Property) InventoryGet(C, "ItemButt").Property = { Intensity: -1 }
@@ -488,15 +496,15 @@ function ElliesStory() {
 					CharacterLoadEffect(C)
 					ChatRoomCharacterUpdate(C)
 					setVibe()
-					CA("This button simply turns up the plug, and adjusts the intensity of the vibrator")
+					CE("This button simply turns up the plug, and adjusts the intensity of the vibrator")
 				} else {
 					//Wrong button
-					CA("The button doesn't do anything, it simply sets the intensity of your vibrator");
+					CE("The button doesn't do anything, it simply sets the intensity of your vibrator");
 					setVibe();
 				}
 			} else {
 				//Wrong button
-				CA("The button doesn't do anything, it simply sets the intensity of your vibrator");
+				CE("The button doesn't do anything, it simply sets the intensity of your vibrator");
 				setVibe();
 			}
 		};
@@ -510,7 +518,7 @@ function ElliesStory() {
 				if (C.ActivePose == null) {
 					//Standing
 					flags.AtButton = b;
-					CA("You walk up to button " + b + " but it can't be reached while standing.");
+					CE("You walk up to button " + b + " but it can't be reached while standing.");
 					return;
 				}
 				//Otherwise kneeling
@@ -519,7 +527,7 @@ function ElliesStory() {
 					//Pressing the button we currently on
 					buttonClickAction();
 				} else {
-					CA("That button is too far away, you can stand up to walk there, or (crawl to button <number>) to remain on your knees.");
+					CE("That button is too far away, you can stand up to walk there, or (crawl to button <number>) to remain on your knees.");
 				}
 			};
 		}
@@ -534,7 +542,7 @@ function ElliesStory() {
 				}
 
 				if (C.ActivePose == null) {
-					CA("The button can't be reached while standing.");
+					CE("The button can't be reached while standing.");
 					return;
 				}
 
@@ -546,8 +554,8 @@ function ElliesStory() {
 		standsUp.Type = Trigger.Types.Action;
 		standsUp.Action = txt => {
 			flags.AtButton = null;
-			CA("The chastity belt sends a sharp, electric jolt through your body as you stand up");
-			CA("Standing up makes it easy to move around. You simply need to kneel down again, to press the button you want (press button <n>)");
+			CE("The chastity belt sends a sharp, electric jolt through your body as you stand up");
+			CE("Standing up makes it easy to move around. You simply need to kneel down again, to press the button you want (press button <n>)");
 		};
 
 		let orgasmResist = new Trigger("orgasmresist");
@@ -596,7 +604,7 @@ function ElliesStory() {
 		let stay = new Trigger("stay");
 		{
 			stay.Action = function () {
-				CA("After a short while the doors close again")
+				CE("After a short while the doors close again")
 				E.GotoLevel("Doomed")
 			}
 			r.Triggers.push(stay)
@@ -629,7 +637,7 @@ function ElliesStory() {
 				CharacterRefresh(C);
 				ChatRoomCharacterUpdate(C);
 				d = d + " A tag with the word 'slave' on it is attached to your collar."
-				CA(d)
+				CE(d)
 
 				if (InventoryGet(C, "ItemButt")){
 					if (InventoryGet(C, "ItemButt").Asset.Name == "VibratingButtplug") {
@@ -651,42 +659,42 @@ function ElliesStory() {
 	}
 
 	function FollowUp(a) {
-		CA("- The warehouse is fairly big, but mostly empty. There's a (locker) you can check out on the wall to the right, or you can head (down) the stairs to the left, into the basement")
+		CE("- The warehouse is fairly big, but mostly empty. There's a (locker) you can check out on the wall to the right, or you can head (down) the stairs to the left, into the basement")
 	}
 	function Explanation(r) {
-		CA("Type an emote containing (*locker) or (*down) into chat, to get started.")
+		CE("Type an emote containing (*locker) or (*down) into chat, to get started.")
 	}
 	function Explanation2() {
 		CA("triggers have to be emotes to work")
 	}
 	function Welcome() {
-		CA('"Congratulations, ' + C.Name + ', on finding your way in here. It has been a pleassure watching you get yourself into this position"')
+		CE('"Congratulations, ' + C.Name + ', on finding your way in here. It has been a pleassure watching you get yourself into this position"')
 	}
 
 	function NowYouAreStuck() {
-		CA('"You are now my captive"')
+		CE('"You are now my captive"')
 	}
 
 	function AWayOut() {
-		CA('"I will offer you a way out though. If you can find the button that opens the door without cumming, I will let you go. Otherwise you will be kept here as my toy and pet. Or possibly sold away as a slave"')
+		CE('"I will offer you a way out though. If you can find the button that opens the door without cumming, I will let you go. Otherwise you will be kept here as my toy and pet. Or possibly sold away as a slave"')
 	}
 
 	function goToKeyRoom() {
 		E.GotoLevel("KeyRoom");
 	}
 	function arrival() {
-		CA("Finally you arrive at the control room to meet your captor, and you can see the redheaded woman watching you with a calm smile. The room has a good overlook to the warehouse, and several screens to keep track of anyone that might enter")
+		CE("Finally you arrive at the control room to meet your captor, and you can see the redheaded woman watching you with a calm smile. The room has a good overlook to the warehouse, and several screens to keep track of anyone that might enter")
 		E.Reset();
 	}
 
 	function lock() {
-		CA("After a few seconds, a light mechanical click can be hear from the mechanic buckles on the leather cuffs as they tighten slightly and locks themselves in place")
+		CE("After a few seconds, a light mechanical click can be hear from the mechanic buckles on the leather cuffs as they tighten slightly and locks themselves in place")
 		InventoryLock(C, InventoryGet(C, "ItemArms"), "ExclusivePadlock", 2313);
 		ChatRoomCharacterUpdate(C)
 	}
 
 	function dildo() {
-		CA("(You seem to have vibrating dildo blocked in your inventory, this part only works properly if you unblock it)")
+		CE("(You seem to have vibrating dildo blocked in your inventory, this part only works properly if you unblock it)")
 	}
 
 	function UnlockRoom() {

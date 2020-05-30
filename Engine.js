@@ -262,7 +262,7 @@ class Engine {
         this.CurrentLevel.Prepare(this.CurrentLevel);
 
         if (printRoomDesc)
-            CA(this.CurrentLevel.Describe());
+            CE(this.CurrentLevel.Describe());
     }
 
     Reset() {
