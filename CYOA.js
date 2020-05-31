@@ -49,7 +49,7 @@ function ElliesStory() {
 	S.OnCharEnter = char => {
 		CE("As you enter, the door slams shut behind you with the light, mechanical click of a closing lock. Before you is the wide interior of what appears to be an abbandoned warehouse");
 		// Remove all players
-		E.Players.slice(0);
+		E.Players.splice(0);
 		// Add the entering player
 		E.Players.push(char);
 		C = char;
@@ -71,14 +71,7 @@ function ElliesStory() {
 	S.OnCharExit = char => { 
 		if (ArrayRemove(E.Players, char)) {
 			// Remove player if leaves and reset
-
-			E.ChangeRoomSettings(
-				{
-					Background: "AbandonedBuilding",
-					Limit: (ChatRoomCharacter.length + 1).toString(),
-					Locked: false,
-					Private: false
-				});
+			E.Reset()
 		}
 	};
 
@@ -115,7 +108,7 @@ function ElliesStory() {
 		let r = new Level("Locker");
 
 		//Triggers
-		let tryCuffs = new Trigger("cuffs");
+		let tryCuffs = new Trigger("cuff");
 		tryCuffs.Action = function () {
 			if (C.ItemPermission > 2) {
 				CA("You need to adjust your item permissions to perform this action")
@@ -572,7 +565,7 @@ function ElliesStory() {
 		r.Prepare = level => {
 			var d;
 			if (flags.IsEntryRead == false || flags.AtButton == null) {
-				d = "Several small panels open on the floor, accross the room and tiny stands, with numbered buttons between 0 and 20, extend. The buttons are all the way down on the floor, so either you can try pressing one with your foot(press button <number> with foot), or you will have to kneel to reach them (press button <number>) (without <>)";
+				d = "Several small panels open on the floor, accross the room and tiny stands, with numbered buttons between 0 and 23, extend. The buttons are all the way down on the floor, so either you can try pressing one with your foot(press button <number> with foot), or you will have to kneel to reach them (press button <number>) (without <>)";
 				flags.IsEntryRead = true;
 			} else {
 				d = "Now at button " + flags.AtButton + ", you can try to press it(press button "+ flags.AtButton + ") or crawl to another button(crawl to button <n>)"
