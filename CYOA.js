@@ -37,13 +37,18 @@ function ElliesStory() {
 
 	S.OnReset = () => {
 		S.Flags = flags = new Flags();
-		E.ChangeRoomSettings(
-			{
-				Background: "AbandonedBuilding",
-				Limit: (ChatRoomCharacter.length + 1).toString(),
-				Locked: false,
-				Private: false
-			});
+		var UpdatedRoom = {
+			Name: ChatRoomData.Name,
+			Description: ChatRoomData.Description,
+			Background: "AbandonedBuilding",
+			Limit: (ChatRoomCharacter.length + 1).toString(),
+			Admin: ChatRoomData.Admin,
+			Ban: ChatRoomData.Ban,
+			Private: false,
+			Locked: false
+		}
+		ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Room: UpdatedRoom, Action: "Update" });
+		ChatAdminMessage = "UpdatingRoom";
 	};
 
 	S.OnCharEnter = char => {
@@ -511,8 +516,9 @@ function ElliesStory() {
 				}
 				//Otherwise kneeling
 
-				if (flags.AtButton == b) {
+				if (flags.AtButton == b || flags.AtButton == null) {
 					//Pressing the button we currently on
+					flags.AtButton = b;
 					buttonClickAction();
 				} else {
 					CE("That button is too far away, you can stand up to walk there, or (crawl to button <number>) to remain on your knees.");
@@ -672,6 +678,7 @@ function ElliesStory() {
 	}
 	function arrival() {
 		CE("Finally you arrive at the control room to meet your captor, and you can see the redheaded woman watching you with a calm smile. The room has a good overlook to the warehouse, and several screens to keep track of anyone that might enter")
+		ServerSend("ChatRoomAdmin", { MemberNumber: C.MemberNumber, Action: "MoveLeft", Publish: false});	
 		E.Reset();
 	}
 
