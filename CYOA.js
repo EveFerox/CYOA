@@ -476,12 +476,12 @@ function ElliesStory() {
 				InventoryWear(C, "NylonRope", "ItemLegs", InventoryGet(C, "HairFront").Color, 0)
 				ChatRoomCharacterUpdate(C)
 				CE("More mechanical arms extend from the floor, swiftly snaring together your legs to make movement harder. To proceed you will have to struggle out")
-			} else if (rng ==4 && C.BlockItems.map(function(e) { return e.Name; }).indexOf('VibratingDildo') >= 0) {
-				if (InventoryGet(C, "ItemButt").Asset.Name != "VibratingButtplug") {
+			} else if (rng >3 && C.BlockItems.map(function(e) { return e.Name; }).indexOf('VibratingDildo') == -1) {
+				if (!InventoryGet(C, "ItemButt") || InventoryGet(C, "ItemButt").Asset.Name != "VibratingButtplug") {
 					CE("A panel opens on the floor, just behind you, extending an arm to shove a butt plug through an opening on your castity belt, then swiftly closes it")
 					InventoryWear(C, "VibratingButtplug", "ItemButt")
-					ChatRoomCharacterUpdate(C)
 					if (!InventoryGet(C, "ItemButt").Property) InventoryGet(C, "ItemButt").Property = { Intensity: -1 }
+					ChatRoomCharacterUpdate(C)
 				} else if (InventoryGet(C, "ItemButt").Property.Intensity < 4) {
 					InventoryGet(C, "ItemButt").Property.Effect = ["Egged", "Vibrating"]
 					InventoryGet(C, "ItemButt").Property.Intensity = InventoryGet(C, "ItemButt").Property.Intensity + 1

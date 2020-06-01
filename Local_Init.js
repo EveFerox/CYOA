@@ -25,7 +25,7 @@
         if (CurrentScreen != "ChatRoom") return;
 
         let char = String.fromCharCode(e.keyCode);
-        if (char == "S") {
+        if (char == "Z") {
             CYOA_Start();
 
             window.removeEventListener("keydown", keydown);
