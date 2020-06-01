@@ -3,6 +3,7 @@
 /**Loading manually all the scripts */
 {
     let Folder = "Scripts/CYOA/";
+    let EngineFolder = Folder + "Engine/";
 
     /**@param {string} scriptFileName */
     function AddScript(scriptFileName) {
@@ -12,7 +13,10 @@
     }
 
     AddScript(Folder + "Utils.js");
-    AddScript(Folder + "Engine.js")
+    AddScript(EngineFolder + "Trigger.js");
+    AddScript(EngineFolder + "Level.js");
+    AddScript(EngineFolder + "Story.js");
+    AddScript(EngineFolder + "Engine.js");
     AddScript(Folder + "CYOA.js");
 }
 

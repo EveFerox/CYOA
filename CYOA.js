@@ -364,7 +364,7 @@ function ElliesStory() {
 
 		//Triggers
 		let sameAction = () => {
-			InventoryWear(C, "VibratingDildo", "ItemVulva")
+			InventoryWear(C, "VibratingDildo", "ItemVulva", "Default", 20)
 			InventoryWear(C, "OneBarPrison", "ItemDevices", "Default", 20)
 			ChatRoomCharacterUpdate(C)
 
@@ -398,7 +398,7 @@ function ElliesStory() {
 		let sameAction = () => {
 
 			InventoryRemove(C, "ItemDevices")
-			InventoryWear(C, "PolishedChastityBelt", "ItemPelvis")
+			InventoryWear(C, "PolishedChastityBelt", "ItemPelvis", "Default", 20)
 			ChatRoomCharacterUpdate(C)
 
 			E.GotoLevel("Stuck3");
@@ -421,7 +421,7 @@ function ElliesStory() {
 
 		let sameAction = () => {
 
-			InventoryWear(C, "Stockings1", "Socks")
+			InventoryWear(C, "Stockings1", "Socks", "Default", 20)
 			InventoryWear(C, "HarnessPanelGag", "ItemMouth2", "Default", 20)
 			InventoryRemove(C, "ItemFeet")
 			ChatRoomCharacterUpdate(C)
@@ -479,7 +479,7 @@ function ElliesStory() {
 			} else if (rng >3 && C.BlockItems.map(function(e) { return e.Name; }).indexOf('VibratingDildo') == -1) {
 				if (!InventoryGet(C, "ItemButt") || InventoryGet(C, "ItemButt").Asset.Name != "VibratingButtplug") {
 					CE("A panel opens on the floor, just behind you, extending an arm to shove a butt plug through an opening on your castity belt, then swiftly closes it")
-					InventoryWear(C, "VibratingButtplug", "ItemButt")
+					InventoryWear(C, "VibratingButtplug", "ItemButt", "Default", 20)
 					if (!InventoryGet(C, "ItemButt").Property) InventoryGet(C, "ItemButt").Property = { Intensity: -1 }
 					ChatRoomCharacterUpdate(C)
 				} else if (InventoryGet(C, "ItemButt").Property.Intensity < 4) {
@@ -621,7 +621,7 @@ function ElliesStory() {
 					ChatRoomCharacterUpdate(C)
 					d = d + " A leather collar is secured snugly around your neck so it hugs your skin all the way around, and"
 				}
-				InventoryWear(C, "CollarNameTag", "ItemNeckAccessories", "#ffffff")
+				InventoryWear(C, "CollarNameTag", "ItemNeckAccessories", "#ffffff", 20)
 				DialogFocusItem = InventoryGet(C, "ItemNeckAccessories");
 				if (DialogFocusItem.Property == null) DialogFocusItem.Property = { Type: null };
 				DialogFocusItem.Property.Type = "Slave";
