@@ -8,7 +8,7 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
     }
 });
 
-document.getElementById("headerVersion").innerText = `CYOA Engine v${Engine.Version}`;
+document.getElementById("headerVersion").innerText = `v${Engine.Version}`;
 
 function SetIsInCorrectTab(isInCorrectTab) {
     document.getElementById("divActive").hidden = isInCorrectTab === false;

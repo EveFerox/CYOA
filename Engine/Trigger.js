@@ -1,7 +1,9 @@
 // @ts-check
 
 class Trigger {
-    /**Possible Trigger Types */
+    /**Possible Trigger Types 
+     * @enum {string}
+    */
     static Types = Object.freeze({
         Emote: "Emote",
         Action: "Action",

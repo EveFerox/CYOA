@@ -3,7 +3,7 @@
 /**The CYOA Engine */
 class Engine {
 
-    static get Version() { return 0.3; }
+    static get Version() { return 0.31; }
 
     /**The single instance of the CYOA engine.
      * @returns {Engine}
@@ -75,7 +75,7 @@ class Engine {
 
         this.#S = story;
 
-        CA("=== CYOA Engine Starting ===", null, true);
+        this.ChatAction("=== CYOA Engine Starting ===", null, true);
 
         this.CurrentStory.Engine = this;
         this.CurrentStory.OnStart();
@@ -92,7 +92,7 @@ class Engine {
 
     /**Stops the current story */
     Stop() {
-        CA("=== CYOA Engine Stopping ===", null, true);
+        this.ChatAction("=== CYOA Engine Stopping ===", null, true);
         ServerSocket.off("ChatRoomMessage", this.#boundChatMessage);
         ServerSocket.off("ChatRoomSync", this.#boundRoomSync);  
     }
@@ -107,7 +107,7 @@ class Engine {
 	 * @param {boolean} printRoomDesc
 	 */
     GotoLevel(levelName, printRoomDesc = true) {
-        var found = this.CurrentStory.GetLevel(levelName);
+        let found = this.CurrentStory.GetLevel(levelName);
         if (found == null) {
             console.log("[ERROR] Room " + levelName + " not found!");
             return;
@@ -118,7 +118,7 @@ class Engine {
         this.CurrentLevel.Prepare(this.CurrentLevel);
 
         if (printRoomDesc)
-            CE(this.CurrentLevel.Describe());
+            this.ChatEmote(this.CurrentLevel.Describe());
     }
 
     Reset() {
@@ -126,30 +126,86 @@ class Engine {
     }
 
     /**Sends a "ChatRoomAdmin" message to server
-     * @param {{ Name?: string; Description?: string; Background?: string; Limit?: string; Admin?: string; Ban?: any; Private?: boolean; Locked?: boolean; }} roomSettings
+     * @param {Object} roomSettings
+     * @param {string?} roomSettings.Name
+     * @param {string?} roomSettings.Description
+     * @param {string?} roomSettings.Background
+     * @param {string?} roomSettings.Limit
+     * @param {number[]?} roomSettings.Admin
+     * @param {number[]?} roomSettings.Ban
+     * @param {boolean?} roomSettings.Private
+     * @param {boolean?} roomSettings.Locked
      */
     ChangeRoomSettings(roomSettings) {
-        ServerSend("ChatRoomAdmin", {
-            MemberNumber: Player.ID,
-            Action: "Update",
-            Room: {
-                Name: roomSettings.Name || ChatRoomData.Name,
-                Description: roomSettings.Description || ChatRoomData.Description,
-                Background: roomSettings.Background || ChatRoomData.Background,
-                Limit: roomSettings.Limit || ChatRoomData.Limit,
-                Admin: roomSettings.Admin || ChatRoomData.Admin,
-                Ban: roomSettings.Ban || ChatRoomData.Ban,
-                Private: roomSettings.Private || ChatRoomData.Private,
-                Locked: roomSettings.Locked || ChatRoomData.Locked
-            }
-        });
+        let Room = {
+            Name: roomSettings.Name || ChatRoomData.Name,
+            Description: roomSettings.Description || ChatRoomData.Description,
+            Background: roomSettings.Background || ChatRoomData.Background,
+            Limit: roomSettings.Limit || ChatRoomData.Limit,
+            Admin: roomSettings.Admin || ChatRoomData.Admin,
+            Ban: roomSettings.Ban || ChatRoomData.Ban,
+            Private: ChatRoomData.Private,
+            Locked: ChatRoomData.Locked
+        }
+
+        if (roomSettings.Private != undefined) {
+            Room.Private = roomSettings.Private;
+        }
+
+        if (roomSettings.Locked != undefined) {
+            Room.Locked = roomSettings.Locked;
+        }
+
+        ServerSend("ChatRoomAdmin", { MemberNumber: Player.ID, Action: "Update", Room: Room });
     }
 
-    #OnRoomMessage = (data) => {
-        var sender = CharFromID(data.Sender);
-        var msg = String(data.Content).toLowerCase();
+    /**Chat Action
+     * @param {string} text
+     * @param {number} target
+     * @param {boolean} isLogToConsole
+     */
+    ChatAction(text, target = undefined, isLogToConsole = false) {
+        ServerSend("ChatRoomChat", {
+            Content: "ActionRemove",
+            Type: "Action",
+            Dictionary: [{
+                Tag: "SourceCharacter removes the PrevAsset from DestinationCharacter FocusAssetGroup.",
+                Text: text
+            }],
+            Target: target
+        });
+        if (isLogToConsole) console.log(text);
+    }
 
-        if (data.Type == "Action") {
+    #isSentEmote = false;
+
+    /**Chat Emote
+     * @param {string} text
+     * @param {number} target
+     * @param {boolean} isLogToConsole
+     */
+    ChatEmote(text, target = undefined, isLogToConsole = false) {
+        this.#isSentEmote = true;
+        ServerSend("ChatRoomChat", {
+            Content: "*" + text,
+            Type: "Emote",
+            Target: target
+        });
+        if (isLogToConsole) console.log(text);
+    }
+
+    /**
+     * @param {Object} data
+     * @param {number} data.Sender
+     * @param {string} data.Content
+     * @param {string} data.Type
+     */
+    #OnRoomMessage = (data) => {
+        let sender = CharFromID(data.Sender);
+        let msg = String(data.Content).toLowerCase();
+
+        //Handle special actions
+        if (data.Type == Trigger.Types.Action) {
             if (msg.startsWith("serverenter")) {
                 // Character entered
                 this.CurrentStory.OnCharEnter(sender);
@@ -163,12 +219,18 @@ class Engine {
             }
         }
 
+        //Ignore message if host sent an emote
+        if (data.Type == Trigger.Types.Emote && this.#isSentEmote) {
+            this.#isSentEmote = false;
+            return;
+        }
+
         //Current player sent a message
         if (this.IsCharPlaying(sender)) {
             //Iterate room triggers for a match
-            var triggers = this.CurrentLevel.GetTriggers();
-            for (var i = 0; i < triggers.length; i++) {
-                var trigger = triggers[i];
+            let triggers = this.CurrentLevel.GetTriggers();
+            for (let i = 0; i < triggers.length; i++) {
+                let trigger = triggers[i];
 
                 //Check trigger type
                 if (trigger.Type != data.Type) continue;
@@ -181,7 +243,7 @@ class Engine {
             }
 
             //Print room entry
-            var regex = /(look|help)/mg;
+            let regex = /(look|help)/mg;
             if (regex.test(msg))
                 this.GotoLevel(this.CurrentLevel.Name);
         }
