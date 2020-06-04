@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-    <style>
+
+<style>
     .bigButton {
         display: block;
         width: 100%;
@@ -20,7 +21,8 @@
 </style>
 
 <body style="width: max-content;">
-    <h1 id="headerVersion"></h1>
+    <h1 id="CYOA Engine"></h1>
+    <h4 id="headerVersion"></h4>
     <div id="divActive">
         <button id="btnStart" class="bigButton">Start Story</button>
         <br>
@@ -29,8 +31,12 @@
     <div id="divNotActive">
         <h2>Only works in <a href="http://www.bondageprojects.com/club_game/">Bondage Club</a></h2>
     </div>
+    <h3><a href="https://github.com/EveFerox/CYOA">Visit the repo</a></h3>
     <script src="../Utils.js"></script>
-    <script src="../Engine.js"></script>
+    <script src="../Engine/Trigger.js"></script>
+    <script src="../Engine/Level.js"></script>
+    <script src="../Engine/Story.js"></script>
+    <script src="../Engine/Engine.js"></script>
     <script src="Ext_Popup.js"></script>
 </body>
 

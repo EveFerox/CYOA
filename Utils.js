@@ -25,31 +25,6 @@ function ArrayRemove(arr, value) {
     return true;
 }
 
-/**Chat Action
- * @param {string} text
- * @param {number} target
- * @param {boolean} isLogToConsole
- */
-function CA(text, target = undefined, isLogToConsole = false) {
-    ServerSend("ChatRoomChat", {
-        Content: "ActionRemove",
-        Type: "Action",
-        Dictionary: [{ Tag: "SourceCharacter removes the PrevAsset from DestinationCharacter FocusAssetGroup.", Text: text }],
-        Target: target
-    });
-    if (isLogToConsole) console.log(text);
-}
-
-/**Chat Emote
- * @param {string} text
- * @param {number} target
- * @param {boolean} isLogToConsole
- */
-function CE(text, target = undefined, isLogToConsole = false) {
-    ServerSend("ChatRoomChat", { Content: "*" + text, Type: "Emote", Target: target });
-    if (isLogToConsole) console.log(text);
-}
-
 /**Returns true if ServerSocket exists */
 function IsSocketReady() {
     return typeof ServerSocket !== 'undefined' && ServerSocket != null;

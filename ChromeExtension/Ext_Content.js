@@ -19,7 +19,12 @@ window.addEventListener("load", e => {
         return document.head.appendChild(script);
     }
 
+    let EngineFolder = "/Engine/";
+
     AddScript("Utils.js");
-    AddScript("Engine.js");
+    AddScript(EngineFolder + "Trigger.js");
+    AddScript(EngineFolder + "Level.js");
+    AddScript(EngineFolder + "Story.js");
+    AddScript(EngineFolder + "Engine.js");
     AddScript("CYOA.js");
 });
