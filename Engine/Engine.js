@@ -177,7 +177,7 @@ class Engine {
         if (isLogToConsole) console.log(text);
     }
 
-    #isSentEmote = false;
+    #hostSendEmoteCounter = 0;
 
     /**Chat Emote
      * @param {string} text
@@ -185,7 +185,7 @@ class Engine {
      * @param {boolean} isLogToConsole
      */
     ChatEmote(text, target = undefined, isLogToConsole = false) {
-        this.#isSentEmote = true;
+        if (this.IsCharPlaying(Player)) this.#hostSendEmoteCounter++;
         ServerSend("ChatRoomChat", {
             Content: "*" + text,
             Type: "Emote",
@@ -219,14 +219,17 @@ class Engine {
             }
         }
 
-        //Ignore message if host sent an emote
-        if (data.Type == Trigger.Types.Emote && this.#isSentEmote) {
-            this.#isSentEmote = false;
-            return;
-        }
-
         //Current player sent a message
         if (this.IsCharPlaying(sender)) {
+
+            //Ignore message if host sent an emote
+            if (sender.MemberNumber == Player.MemberNumber &&
+                data.Type == Trigger.Types.Emote &&
+                this.#hostSendEmoteCounter > 0) {
+                this.#hostSendEmoteCounter--;
+                return;
+            }
+
             //Iterate room triggers for a match
             let triggers = this.CurrentLevel.GetTriggers();
             for (let i = 0; i < triggers.length; i++) {
