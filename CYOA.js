@@ -458,9 +458,13 @@ function ElliesStory() {
 		{
 			moveToButton.Regex = /^(?:crawl[s]? to button)\s+([0-9]+)$/i;
 			moveToButton.Action = txt => {
-				let b = parseInt(txt.match(moveToButton.Regex)[1]);
-				flags.AtButton = b;
-				CE("Now at button " + b + ", you can press it(press button " + b + "), or crawl to a different button (crawl to button <n>)");
+				if (InventoryGet(C, "ItemLegs")){
+					CE("You can't move with your legs bound. You will have to struggle out")
+				} else {
+					let b = parseInt(txt.match(moveToButton.Regex)[1]);
+					flags.AtButton = b;
+					CE("Now at button " + b + ", you can press it(press button " + b + "), or crawl to a different button (crawl to button <n>)");
+				}
 			}
 		}
 
@@ -476,7 +480,7 @@ function ElliesStory() {
 				InventoryWear(C, "NylonRope", "ItemLegs", InventoryGet(C, "HairFront").Color, 0)
 				ChatRoomCharacterUpdate(C)
 				CE("More mechanical arms extend from the floor, swiftly snaring together your legs to make movement harder. To proceed you will have to struggle out")
-			} else if (rng >3 && C.BlockItems.map(function(e) { return e.Name; }).indexOf('VibratingDildo') == -1) {
+			} else if (rng >3 && C.BlockItems.map(function(e) { return e.Name; }).indexOf('VibratingButtplug') == -1) {
 				if (!InventoryGet(C, "ItemButt") || InventoryGet(C, "ItemButt").Asset.Name != "VibratingButtplug") {
 					CE("A panel opens on the floor, just behind you, extending an arm to shove a butt plug through an opening on your castity belt, then swiftly closes it")
 					InventoryWear(C, "VibratingButtplug", "ItemButt")
@@ -558,7 +562,14 @@ function ElliesStory() {
 		let cum = new Trigger("orgasm");
 		cum.Type = Trigger.Types.Activity;
 		cum.Regex = /(orgasm|cum|cumming)/i;
-		cum.Action = () => E.GotoLevel("Doomed");
+		cum.Action = () => {
+			if (InventoryGet(C, "ItemLegs")){
+				CE('Mechanical arms extend from the ground to cut the ropes again and free your legs.')
+				InventoryRemove(C, "ItemLegs")
+				ChatRoomCharacterUpdate(C)
+			}
+			E.GotoLevel("Doomed");
+		}
 
 		r.Triggers.push(foot);
 		r.Triggers.push(moveToButton);
