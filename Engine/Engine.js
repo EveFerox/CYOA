@@ -238,7 +238,7 @@ class Engine {
                 //Check trigger type
                 if (trigger.Type != data.Type) continue;
 
-                if (trigger.IsMatch(msg)) {
+                if (trigger.IsMatch(msg, sender)) {
                     console.log("[INFO] Trigger hit: " + trigger.Text);
                     trigger.Action(msg, sender);
                     return;
