@@ -32,9 +32,10 @@ class Trigger {
 
     /**Tests Regex or Text of this trigger
      * @param {string} txt Text to test
+     * @param {object} C player
      * @returns {boolean}
      */
-    IsMatch = txt => {
+    IsMatch = (txt, C) => {
         if (this.Regex == null) {
             // No regex, try to match text
             return new RegExp(this.Text).test(txt);

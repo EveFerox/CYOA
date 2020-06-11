@@ -12,22 +12,18 @@ class Story {
      * @type {object} */
     Flags = {};
 
-    /**Called when story is started [Optional]
-     * @type {function} */
-    OnStart = () => {};
+    /**Called when story is started [Optional] */
+    OnStart = () => { };
 
-    /**Called when story is being reset [Optional]
-     * @type {function} */
+    /**Called when story is being reset [Optional] */
     OnReset = () => {};
 
     /**Called when character enters ChatRoom [Optional]
-     * @type {function}
      * @param {object} char
      */
     OnCharEnter = char => {};
 
     /**Called when character leaves ChatRoom [Optional]
-     * @type {function}
      * @param {object} char
      */
     OnCharExit = char => {};

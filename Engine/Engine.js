@@ -127,14 +127,14 @@ class Engine {
 
     /**Sends a "ChatRoomAdmin" message to server
      * @param {Object} roomSettings
-     * @param {string?} roomSettings.Name
-     * @param {string?} roomSettings.Description
-     * @param {string?} roomSettings.Background
-     * @param {string?} roomSettings.Limit
-     * @param {number[]?} roomSettings.Admin
-     * @param {number[]?} roomSettings.Ban
-     * @param {boolean?} roomSettings.Private
-     * @param {boolean?} roomSettings.Locked
+     * @param {string} [roomSettings.Name]
+     * @param {string} [roomSettings.Description]
+     * @param {string} [roomSettings.Background]
+     * @param {string} [roomSettings.Limit]
+     * @param {number[]} [roomSettings.Admin]
+     * @param {number[]} [roomSettings.Ban]
+     * @param {boolean} [roomSettings.Private]
+     * @param {boolean} [roomSettings.Locked]
      */
     ChangeRoomSettings(roomSettings) {
         let Room = {
@@ -238,7 +238,7 @@ class Engine {
                 //Check trigger type
                 if (trigger.Type != data.Type) continue;
 
-                if (trigger.IsMatch(msg)) {
+                if (trigger.IsMatch(msg, sender)) {
                     console.log("[INFO] Trigger hit: " + trigger.Text);
                     trigger.Action(msg, sender);
                     return;
