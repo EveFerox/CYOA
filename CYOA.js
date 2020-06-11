@@ -565,7 +565,7 @@ function ElliesStory() {
 		cum.Regex = /(orgasm|cum|cumming)/i;
 		cum.Action = () => {
 			if (InventoryGet(C, "ItemLegs")){
-				CE('Mechanical arms extend from the ground to cut the ropes again and free your legs.')
+				E.ChatEmote('Mechanical arms extend from the ground to cut the ropes again and free your legs.')
 				InventoryRemove(C, "ItemLegs")
 				ChatRoomCharacterUpdate(C)
 			}
